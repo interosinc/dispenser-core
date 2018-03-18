@@ -12,6 +12,7 @@ module Dispenser.Types where
 import Dispenser.Prelude
 
 import Data.Default
+import Streaming
 
 newtype Batch a = Batch { unBatch :: [a] }
   deriving (Applicative, Generic, Eq, Foldable, Functor, Ord, Read, Show)
@@ -19,8 +20,8 @@ newtype Batch a = Batch { unBatch :: [a] }
 newtype BatchSize = BatchSize { unBatchSize :: Word }
   deriving (Eq, Generic, Num, Ord, Read, Show)
 
-class Client client where
-  connect :: PartitionConnection conn => PartitionName -> client -> conn
+class PartitionConnection conn => Client client conn | client -> conn where
+  connect :: MonadIO m => PartitionName -> client -> m conn
 
 newtype DatabaseURL = DatabaseURL { unDatabaseUrl :: Text }
   deriving (Eq, Generic, Ord, Read, Show)
@@ -55,8 +56,13 @@ data Partition = Partition
   } deriving (Eq, Generic, Ord, Read, Show)
 
 class PartitionConnection pc where
-  appendEvents :: EventData a =>
-                  [StreamName] -> NonEmptyBatch a -> pc -> IO (Async EventNumber)
+  appendEvents :: (EventData a, MonadIO m)
+               => [StreamName] -> NonEmptyBatch a -> pc -> m (Async EventNumber)
+  fromNow :: (EventData a, MonadIO m)
+          => [StreamName] -> pc -> m (Stream (Of (Event a)) m r)
+  rangeStream :: (EventData a, MonadIO m)
+              => [StreamName] -> (EventNumber, EventNumber) -> pc
+              -> m (Stream (Of (Event a)) m r)
 
 newtype PoolSize = PoolSize Word
   deriving (Eq, Generic, Ord, Read, Show)
