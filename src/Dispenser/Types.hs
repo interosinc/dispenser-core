@@ -19,6 +19,9 @@ newtype Batch a = Batch { unBatch :: [a] }
 newtype BatchSize = BatchSize { unBatchSize :: Word }
   deriving (Eq, Generic, Num, Ord, Read, Show)
 
+class Client client where
+  connect :: PartitionConnection conn => PartitionName -> client -> conn
+
 newtype DatabaseURL = DatabaseURL { unDatabaseUrl :: Text }
   deriving (Eq, Generic, Ord, Read, Show)
 
@@ -48,8 +51,12 @@ newtype NonEmptyBatch a = NonEmptyBatch { unNonEmptyBatch :: NonEmpty a }
 
 data Partition = Partition
   { _dbUrl     :: DatabaseURL
-  , _tableName :: TableName
+  , _tableName :: PartitionName
   } deriving (Eq, Generic, Ord, Read, Show)
+
+class PartitionConnection pc where
+  appendEvents :: EventData a =>
+                  [StreamName] -> NonEmptyBatch a -> pc -> IO (Async EventNumber)
 
 newtype PoolSize = PoolSize Word
   deriving (Eq, Generic, Ord, Read, Show)
@@ -57,7 +64,7 @@ newtype PoolSize = PoolSize Word
 newtype StreamName = StreamName { unStreamName :: Text }
   deriving (Eq, Generic, Ord, Read, Show)
 
-newtype TableName = TableName { unTableName :: Text }
+newtype PartitionName = PartitionName { unPartitionName :: Text }
   deriving (Eq, Generic, Ord, Read, Show)
 
 newtype Timestamp = Timestamp UTCTime
