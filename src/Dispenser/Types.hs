@@ -50,8 +50,8 @@ newtype NonEmptyBatch a = NonEmptyBatch { unNonEmptyBatch :: NonEmpty a }
   deriving (Eq, Foldable, Functor, Generic, Ord, Read, Show)
 
 data Partition = Partition
-  { _dbUrl     :: DatabaseURL
-  , _tableName :: PartitionName
+  { _dbUrl         :: DatabaseURL
+  , _partitionName :: PartitionName
   } deriving (Eq, Generic, Ord, Read, Show)
 
 class PartitionConnection pc where
