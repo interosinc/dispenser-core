@@ -61,8 +61,8 @@ class PartitionConnection pc where
   fromNow :: (EventData a, MonadIO m)
           => [StreamName] -> pc -> m (Stream (Of (Event a)) m r)
   rangeStream :: (EventData a, MonadIO m)
-              => [StreamName] -> (EventNumber, EventNumber) -> pc
-              -> m (Stream (Of (Event a)) m r)
+              => BatchSize -> [StreamName] -> (EventNumber, EventNumber) -> pc
+              -> m (Stream (Of (Event a)) m ())
 
 newtype PoolSize = PoolSize Word
   deriving (Eq, Generic, Ord, Read, Show)

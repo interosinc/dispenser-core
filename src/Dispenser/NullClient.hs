@@ -5,7 +5,8 @@
 module Dispenser.NullClient ( NullClient, NullConnection ) where
 import Dispenser.Prelude
 
-import Dispenser.Types ( Client
+import Dispenser.Types ( BatchSize
+                       , Client
                        , Event
                        , EventNumber( EventNumber )
                        , NonEmptyBatch
@@ -44,8 +45,9 @@ instance PartitionConnection NullConnection where
   fromNow _ _ = forever . liftIO . threadDelay $ 1000 * 1000 * 1000
 
   rangeStream :: MonadIO m
-              => [StreamName]
+              => BatchSize
+              -> [StreamName]
               -> (EventNumber, EventNumber)
               -> NullConnection
               -> m (Stream (Of (Event a)) m r)
-  rangeStream _ _ _ = forever . liftIO . threadDelay $ 1000 * 1000 * 1000
+  rangeStream _ _ _ _ = forever . liftIO . threadDelay $ 1000 * 1000 * 1000
