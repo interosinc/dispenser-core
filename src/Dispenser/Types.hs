@@ -12,6 +12,7 @@ module Dispenser.Types where
 import Dispenser.Prelude
 
 import Data.Default
+import Data.Time.Clock
 import Streaming
 
 newtype Batch a = Batch { unBatch :: [a] }
@@ -57,12 +58,16 @@ data Partition = Partition
 
 class PartitionConnection pc where
   appendEvents :: (EventData a, MonadIO m)
-               => [StreamName] -> NonEmptyBatch a -> pc -> m (Async EventNumber)
+               => pc -> [StreamName] -> NonEmptyBatch a -> m (Async EventNumber)
   fromNow :: (EventData a, MonadIO m)
           => [StreamName] -> pc -> m (Stream (Of (Event a)) m r)
   rangeStream :: (EventData a, MonadIO m)
               => BatchSize -> [StreamName] -> (EventNumber, EventNumber) -> pc
               -> m (Stream (Of (Event a)) m ())
+
+postEvent :: (EventData a, PartitionConnection pc)
+          => pc -> [StreamName] -> a -> IO (Async EventNumber)
+postEvent pc sns e = appendEvents pc sns (NonEmptyBatch $ e :| [])
 
 newtype PoolSize = PoolSize Word
   deriving (Eq, Generic, Ord, Read, Show)
@@ -73,8 +78,11 @@ newtype StreamName = StreamName { unStreamName :: Text }
 newtype PartitionName = PartitionName { unPartitionName :: Text }
   deriving (Eq, Generic, Ord, Read, Show)
 
-newtype Timestamp = Timestamp UTCTime
+newtype Timestamp = Timestamp { unTimestamp :: UTCTime }
   deriving (Eq, Generic, Ord, Read, Show)
+
+now :: IO Timestamp
+now = Timestamp <$> getCurrentTime
 
 instance FromJSON Timestamp
 instance ToJSON   Timestamp
