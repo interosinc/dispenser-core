@@ -1,12 +1,9 @@
 {-# LANGUAGE ExistentialQuantification #-}
-{-# LANGUAGE FunctionalDependencies    #-}
 {-# LANGUAGE GADTs                     #-}
 {-# LANGUAGE LambdaCase                #-}
 {-# LANGUAGE MultiParamTypeClasses     #-}
 {-# LANGUAGE NoImplicitPrelude         #-}
 {-# LANGUAGE RankNTypes                #-}
-{-# LANGUAGE RecordWildCards           #-}
-{-# LANGUAGE TemplateHaskell           #-}
 
 module Dispenser.Catchup
      ( Config( Config )
@@ -36,7 +33,7 @@ make config eventNum batchSize = do
     Just lastEvent :> _ -> do
       let lastEventNum = lastEvent ^. eventNumber
           nextEventNum = succ lastEventNum
-      currentEventNum <- liftIO $ currentEventNumber
+      currentEventNum <- liftIO currentEventNumber
       if eventNumberDelta currentEventNum lastEventNum > maxHandOffDelta
         then join . lift $ fromEventNumber nextEventNum batchSize
         else catchup nextEventNum
