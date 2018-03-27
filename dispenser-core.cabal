@@ -16,7 +16,8 @@ cabal-version:       >=1.10
 library
   hs-source-dirs:      src
   ghc-options:         -Wall
-  exposed-modules:     Dispenser.Core
+  exposed-modules:     Dispenser.Catchup
+                     , Dispenser.Core
                      , Dispenser.Prelude
                      , Dispenser.Projections
                      , Dispenser.Types

@@ -60,9 +60,9 @@ class PartitionConnection pc where
   appendEvents :: (EventData a, MonadIO m)
                => pc -> [StreamName] -> NonEmptyBatch a -> m (Async EventNumber)
   fromNow :: (EventData a, MonadIO m)
-          => [StreamName] -> pc -> m (Stream (Of (Event a)) m r)
+          => pc -> [StreamName] -> m (Stream (Of (Event a)) m r)
   rangeStream :: (EventData a, MonadIO m)
-              => BatchSize -> [StreamName] -> (EventNumber, EventNumber) -> pc
+              => pc -> BatchSize -> [StreamName] -> (EventNumber, EventNumber)
               -> m (Stream (Of (Event a)) m ())
 
 postEvent :: (EventData a, PartitionConnection pc)

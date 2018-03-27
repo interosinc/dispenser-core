@@ -2,6 +2,6 @@ module Dispenser.Core
      ( module Exports
      ) where
 
+import Dispenser.Catchup     as Exports
 import Dispenser.Projections as Exports
 import Dispenser.Types       as Exports
-
