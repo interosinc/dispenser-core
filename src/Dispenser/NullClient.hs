@@ -3,21 +3,22 @@
 {-# LANGUAGE NoImplicitPrelude     #-}
 
 module Dispenser.NullClient ( NullClient, NullConnection ) where
+
 import Dispenser.Prelude
 
-import Dispenser.Types ( BatchSize
-                       , Client
-                       , Event
-                       , EventNumber( EventNumber )
-                       , NonEmptyBatch
-                       , PartitionConnection
-                       , PartitionName
-                       , StreamName
-                       , appendEvents
-                       , connect
-                       , fromNow
-                       , rangeStream
-                       )
+import Dispenser.Types   ( BatchSize
+                         , Client
+                         , Event
+                         , EventNumber( EventNumber )
+                         , NonEmptyBatch
+                         , PartitionConnection
+                         , PartitionName
+                         , StreamName
+                         , appendEvents
+                         , connect
+                         , fromNow
+                         , rangeStream
+                         )
 import Streaming
 
 data NullClient = NullClient

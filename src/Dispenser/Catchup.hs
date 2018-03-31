@@ -10,10 +10,11 @@ module Dispenser.Catchup
      , make
      ) where
 
-import Dispenser.Prelude
-import Dispenser.Types
-import Streaming
+import           Dispenser.Prelude
 import qualified Streaming.Prelude as S
+
+import           Dispenser.Types
+import           Streaming
 
 data Config m a r where
   Config :: (EventData a, MonadIO m)
@@ -54,4 +55,3 @@ make config eventNum batchSize = do
           return $ missingStream >>= const (S.yield pivotEvent) >>= const stream'
           where
             endNum = pred $ pivotEvent ^. eventNumber
-
