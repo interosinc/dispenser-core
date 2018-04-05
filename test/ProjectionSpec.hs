@@ -1,18 +1,18 @@
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE NoImplicitPrelude   #-}
+{-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module ProjectionSpec where
 
-import Dispenser.Prelude
+import           Dispenser.Prelude
+import qualified Streaming.Prelude           as S
 
-import Control.Concurrent.STM.TVar
-import Dispenser.Types
-import Dispenser.Projections
-import Streaming
-import qualified Streaming.Prelude as S
-import Test.Hspec
+import           Control.Concurrent.STM.TVar
+import           Dispenser.Projections
+import           Dispenser.Types
+import           Streaming
+import           Test.Hspec
 
 main :: IO ()
 main = hspec spec

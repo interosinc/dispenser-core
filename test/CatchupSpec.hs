@@ -1,20 +1,24 @@
-{-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE DeriveGeneric       #-}
 {-# LANGUAGE NoImplicitPrelude   #-}
 {-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE RecordWildCards     #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module CatchupSpec where
 
-import Data.Maybe (fromJust)
-import Dispenser.Prelude
-import Control.Concurrent.STM.TVar
-import Dispenser.Catchup ( Config( Config ), make )
-import Dispenser.Types
+import           Dispenser.Prelude
+import qualified Streaming.Prelude           as S
+
+import           Control.Concurrent.STM.TVar
+import           Data.Maybe                       ( fromJust )
+import           Dispenser.Catchup                ( Config( Config )
+                                                  , make
+                                                  )
+import           Dispenser.Types
+import           Streaming
+import           Test.Hspec
+
 -- import Dispenser.Projections
-import Streaming
-import qualified Streaming.Prelude as S
-import Test.Hspec
 
 main :: IO ()
 main = hspec spec
@@ -116,5 +120,4 @@ makeTestCatchup current = do
          (handleFromEventNumber' testHandle)
          (handleFromNow' testHandle)
          (handleRangeStream' testHandle)
-  let s = make config
-  return (testHandle, s)
+  return (testHandle, make config)
