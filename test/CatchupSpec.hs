@@ -1,3 +1,4 @@
+{-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE DeriveGeneric       #-}
 {-# LANGUAGE NoImplicitPrelude   #-}
 {-# LANGUAGE OverloadedStrings   #-}
@@ -5,6 +6,7 @@
 
 module CatchupSpec where
 
+import Data.Maybe (fromJust)
 import Dispenser.Prelude
 import Control.Concurrent.STM.TVar
 import Dispenser.Catchup ( Config( Config ), make )
@@ -35,7 +37,8 @@ spec = describe "Catchup.make" $ do
         events <- S.fst' <$> S.toList (S.take 5 stream)
         map (view eventData) events `shouldBe` map TestInt [1..5]
   context "given 5 existing events with 10 incoming" $ do
-    (_, catchup) <- runIO $ makeTestCatchup 10
+    (testHandle, catchup) <- runIO $ makeTestCatchup 5
+    runIO $ advance 10 testHandle
     context "taking the first 15 from 0" $ do
       let newTestStream = catchup (EventNumber 0) (BatchSize 10)
       it "should find the first 15 events" $ do
@@ -43,44 +46,63 @@ spec = describe "Catchup.make" $ do
         events <- S.fst' <$> S.toList (S.take 15 stream)
         map (view eventData) events `shouldBe` map TestInt [1..15]
 
-newtype TestHandle = TestHandle (TVar TestState)
+newtype TestHandle = TestHandle { unTestHandle :: TVar TestState }
 
 data TestState = TestState
+  { currentMaxEventNumber :: EventNumber
+  }
+
+advance :: Word -> TestHandle -> IO ()
+advance 0 _ = return ()
+advance n (TestHandle var) = atomically $ modifyTVar var inc
+  where
+    inc :: TestState -> TestState
+    inc (TestState {..}) = TestState . f $ currentMaxEventNumber
+      where
+        f :: EventNumber -> EventNumber
+        f = fromJust . head . drop (fromIntegral n - 1) . iterate succ
+
+newTestHandle :: EventNumber -> IO TestHandle
+newTestHandle = (TestHandle <$>) . newTVarIO . TestState
+
+handleCurrentEventNumber :: MonadIO m => TestHandle -> m EventNumber
+handleCurrentEventNumber = (currentMaxEventNumber <$>)
+  . liftIO
+  . atomically
+  . readTVar
+  . unTestHandle
+
+handleCurrentStreamFrom :: MonadIO m
+                        => TestHandle
+                        -> EventNumber -> BatchSize -> [StreamName]
+                        -> m (Stream (Of (Event TestInt)) m ())
+handleCurrentStreamFrom testHandle start@(EventNumber s) (BatchSize bs) _ = do
+  currentMaxEventNumber' <- handleCurrentEventNumber testHandle
+  let end = max (EventNumber $ s + fromIntegral bs) currentMaxEventNumber'
+  -- succ to shift to 1-based indexing consistent with postgres
+  return . S.each $ map (f . succ) [start..end]
+  where
+    f :: EventNumber -> Event TestInt
+    f en@(EventNumber n) = Event en [] (TestInt . fromIntegral $ n) ts
+      where
+        ts = panic "ts should be unused"
 
 makeTestCatchup :: Int
                 -> IO ( TestHandle
                       , EventNumber -> BatchSize -> IO (Stream (Of (Event TestInt)) IO r)
                       )
-makeTestCatchup startingMaxEn = do
-  var <- newTVarIO TestState
-  let testHandle = TestHandle var
-      config :: Config IO TestInt r
+makeTestCatchup current = do
+  testHandle <- newTestHandle (EventNumber . fromIntegral $ current)
+  let config :: Config IO TestInt r
       config = Config
-         testCurrentEventNumber'
-         testCurrentStreamFrom'
+         (handleCurrentEventNumber testHandle)
+         (handleCurrentStreamFrom testHandle)
          testFromEventNumber'
          testFromNow'
          testRangeStream'
   let s = make config
   return (testHandle, s)
   where
-    testCurrentEventNumber' :: MonadIO m => m EventNumber
-    testCurrentEventNumber' = return . EventNumber . fromIntegral $ startingMaxEn
-
-    testCurrentStreamFrom' :: MonadIO m
-                           => EventNumber -> BatchSize -> [StreamName]
-                           -> m (Stream (Of (Event TestInt)) m ())
-    testCurrentStreamFrom' start@(EventNumber s) (BatchSize bs) _ =
-      -- succ to shift to 1-based indexing consistent with postgres
-      return . S.each $ map (f . succ) [start..end]
-      where
-        end = EventNumber $ s + fromIntegral bs
-
-        f :: EventNumber -> Event TestInt
-        f en@(EventNumber n) = Event en [] (TestInt . fromIntegral $ n) ts
-          where
-            ts = panic "ts should be unused"
-
     testFromEventNumber' :: (EventData a, MonadIO m)
                          => EventNumber -> BatchSize -> m (Stream (Of (Event a)) m r)
     testFromEventNumber' = panic "testFromEventNumber' not impl"
