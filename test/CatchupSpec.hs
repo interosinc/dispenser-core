@@ -87,6 +87,22 @@ handleCurrentStreamFrom testHandle start@(EventNumber s) (BatchSize bs) _ = do
       where
         ts = panic "ts should be unused"
 
+handleFromEventNumber' :: (EventData a, MonadIO m)
+                       => TestHandle
+                       -> EventNumber -> BatchSize -> m (Stream (Of (Event a)) m r)
+handleFromEventNumber' = panic "handleFromEventNumber' not impl"
+
+handleFromNow' :: EventData a
+               => TestHandle
+               -> [StreamName] -> m (Stream (Of (Event a)) m r)
+handleFromNow' = panic "handleFromNow' not impl"
+
+handleRangeStream' :: (EventData a, MonadIO m)
+                   => TestHandle
+                   -> BatchSize -> [StreamName] -> (EventNumber, EventNumber)
+                   -> m (Stream (Of (Event a)) m ())
+handleRangeStream' = panic "handleRangeStream' not impl"
+
 makeTestCatchup :: Int
                 -> IO ( TestHandle
                       , EventNumber -> BatchSize -> IO (Stream (Of (Event TestInt)) IO r)
@@ -97,20 +113,8 @@ makeTestCatchup current = do
       config = Config
          (handleCurrentEventNumber testHandle)
          (handleCurrentStreamFrom testHandle)
-         testFromEventNumber'
-         testFromNow'
-         testRangeStream'
+         (handleFromEventNumber' testHandle)
+         (handleFromNow' testHandle)
+         (handleRangeStream' testHandle)
   let s = make config
   return (testHandle, s)
-  where
-    testFromEventNumber' :: (EventData a, MonadIO m)
-                         => EventNumber -> BatchSize -> m (Stream (Of (Event a)) m r)
-    testFromEventNumber' = panic "testFromEventNumber' not impl"
-
-    testFromNow' :: EventData a => [StreamName] -> m (Stream (Of (Event a)) m r)
-    testFromNow' = panic "testFromNow' not impl"
-
-    testRangeStream' :: (EventData a, MonadIO m)
-                     => BatchSize -> [StreamName] -> (EventNumber, EventNumber)
-                     -> m (Stream (Of (Event a)) m ())
-    testRangeStream' = panic "testRangeStream' not impl"
