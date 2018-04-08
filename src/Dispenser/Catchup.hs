@@ -3,6 +3,7 @@
 {-# LANGUAGE LambdaCase                #-}
 {-# LANGUAGE MultiParamTypeClasses     #-}
 {-# LANGUAGE NoImplicitPrelude         #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RankNTypes                #-}
 
 module Dispenser.Catchup
@@ -28,16 +29,29 @@ data Config m a r where
 make :: forall m a r. (EventData a, MonadIO m)
      => Config m a r -> EventNumber -> BatchSize -> m (Stream (Of (Event a)) m r)
 make config eventNum batchSize = do
+  debug $ "Catchup.make:"
+    <> " eventNum = " <> show eventNum
   clstream <- S.store S.last <$> currentStreamFrom eventNum batchSize streamNames
+  debug "Catchup.make: returning clstream with continuation"
   return $ clstream >>= \case
-    Nothing :> _ -> catchup (EventNumber 0)
+    Nothing :> _ -> do
+      debug "Catchup.make: initial clstream was empty, so moving to catchup from 0..."
+      catchup (EventNumber 0)
     Just lastEvent :> _ -> do
+      debug "Catchup.make: Got a last event..."
       let lastEventNum = lastEvent ^. eventNumber
           nextEventNum = succ lastEventNum
+      debug $ "lastEventNum=" <> show lastEventNum
+      debug $ "nextEventNum=" <> show nextEventNum
       currentEventNum <- liftIO currentEventNumber
+      debug $ "currentEventNum=" <> show currentEventNum
       if eventNumberDelta currentEventNum lastEventNum > maxHandOffDelta
-        then join . lift $ fromEventNumber nextEventNum batchSize
-        else catchup nextEventNum
+        then do
+          debug $ "delta greater: fromEventNumber, nextEventNum=" <> show nextEventNum
+          join . lift $ fromEventNumber nextEventNum batchSize
+        else do
+          debug $ "delta not greater: catchup, nextEventNum=" <> show nextEventNum
+          catchup nextEventNum
     where
       Config currentEventNumber currentStreamFrom fromEventNumber fromNow' rangeStream'
         = config
@@ -46,12 +60,19 @@ make config eventNum batchSize = do
 
       streamNames = [] -- TODO
 
-      catchup en = join . lift $ fromNow' streamNames >>= chaseFrom en
+      catchup en = do
+        debug $ "Catchup.make:catchup: en=" <> show en
+        join . lift $ fromNow' streamNames >>= chaseFrom en
 
-      chaseFrom startNum stream = S.next stream >>= \case
-        Left _ -> return stream
-        Right (pivotEvent, stream') -> do
-          missingStream <- rangeStream' batchSize streamNames (startNum, endNum)
-          return $ missingStream >>= const (S.yield pivotEvent) >>= const stream'
-          where
-            endNum = pred $ pivotEvent ^. eventNumber
+      chaseFrom startNum stream = do
+        debug $ "chaseFrom: startNum=" <> show startNum <> ", stream=..."
+        S.next stream >>= \case
+          Left _ -> do
+            debug "S.next->Left -- uh"
+            return stream
+          Right (pivotEvent, stream') -> do
+            debug "S.next->Right -- uh, missing, etc"
+            missingStream <- rangeStream' batchSize streamNames (startNum, endNum)
+            return $ missingStream >>= const (S.yield pivotEvent) >>= const stream'
+            where
+              endNum = pred $ pivotEvent ^. eventNumber

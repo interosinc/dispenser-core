@@ -57,16 +57,16 @@ data Partition = Partition
   } deriving (Eq, Generic, Ord, Read, Show)
 
 class PartitionConnection pc where
-  appendEvents :: (EventData a, MonadIO m)
+  appendEvents :: (EventData a, MonadIO m, MonadResource m)
                => pc -> [StreamName] -> NonEmptyBatch a -> m (Async EventNumber)
-  fromNow :: (EventData a, MonadIO m)
+  fromNow :: (EventData a, MonadIO m, MonadResource m)
           => pc -> [StreamName] -> m (Stream (Of (Event a)) m r)
-  rangeStream :: (EventData a, MonadIO m)
+  rangeStream :: (EventData a, MonadIO m, MonadResource m)
               => pc -> BatchSize -> [StreamName] -> (EventNumber, EventNumber)
               -> m (Stream (Of (Event a)) m ())
 
-postEvent :: (EventData a, PartitionConnection pc)
-          => pc -> [StreamName] -> a -> IO (Async EventNumber)
+postEvent :: (EventData a, PartitionConnection pc, MonadIO m, MonadResource m)
+          => pc -> [StreamName] -> a -> m (Async EventNumber)
 postEvent pc sns e = appendEvents pc sns (NonEmptyBatch $ e :| [])
 
 newtype PoolSize = PoolSize Word

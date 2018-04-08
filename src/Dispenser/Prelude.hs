@@ -1,4 +1,5 @@
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Dispenser.Prelude
     ( module Exports
@@ -32,5 +33,5 @@ import Data.Aeson                  as Exports ( FromJSON
 import Data.Time.Clock             as Exports ( UTCTime )
 
 debug :: MonadIO m => Text -> m ()
--- debug = putLn
-debug = const $ return ()
+debug = putLn . ("DEBUG: " <>)
+-- debug = const $ return ()
