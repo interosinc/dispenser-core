@@ -61,7 +61,9 @@ instance forall a. EventData a => PartitionConnection MemConnection a where
           => MemConnection a
           -> [StreamName]
           -> m (Stream (Of (Event a)) m r)
-  fromNow = panic "Memory.fromNow not impl!"
+  fromNow conn streamNames = do
+    startingEn <- liftIO $ currentEventNumber conn
+    continueFrom conn streamNames startingEn
 
   rangeStream :: (EventData a, MonadIO m, MonadResource m)
               => MemConnection a
@@ -77,12 +79,32 @@ instance forall a. EventData a => PartitionConnection MemConnection a where
       $ conn
     return
       . S.takeWhile ((<= maxE) . view eventNumber)
-      . S.dropWhile ((< minE) . view eventNumber)
+      . S.dropWhile ((<  minE) . view eventNumber)
       . S.each
       $ events'
 
-connect :: Text -> MemConnection a
-connect = panic "Memory.connect not impl!"
+continueFrom :: MonadIO m
+             => MemConnection a -> [StreamName] -> EventNumber
+             -> m (Stream (Of (Event a)) m r)
+continueFrom conn streamNames minE = do
+  events' :: [Event a] <- liftIO
+    . atomically
+    . readTVar
+    . view events
+    $ conn
+  -- TODO: non-sleep based solution
+  case elligible events' of
+    []    -> sleep 0.25 >> continueFrom conn streamNames minE
+    (e:_) -> S.cons e  <$> continueFrom conn streamNames (succ $ e ^. eventNumber)
+  where
+    elligible = filter (matchesStreams streamNames)
+      . dropWhile ((< minE) . view eventNumber)
+
+    matchesStreams :: [StreamName] -> Event a -> Bool
+    matchesStreams _ _ = True  -- TODO
+
+connect :: MonadIO m => m (MemConnection a)
+connect = (MemConnection <$>) . liftIO . atomically . newTVar $ []
 
 currentEventNumber :: MemConnection a -> IO EventNumber
 currentEventNumber conn = do
@@ -102,8 +124,6 @@ currentStreamFrom :: (EventData a, MonadIO m, MonadResource m)
 currentStreamFrom conn minE batchSize streamNames = do
   maxE <- liftIO $ currentEventNumber conn
   rangeStream conn batchSize streamNames (minE, maxE)
-
--- recreate = undefined
 
 fromEventNumber :: forall m a r. (EventData a, MonadIO m, MonadResource m)
                 => MemConnection a -> EventNumber -> BatchSize

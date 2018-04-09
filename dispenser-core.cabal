@@ -31,6 +31,7 @@ library
                      , lens
                      , monad-control
                      , random
+                     , resourcet
                      , stm
                      , streaming
                      , text
@@ -44,7 +45,8 @@ test-suite dispenser-core-test
   main-is:             Spec.hs
   other-modules:       CatchupSpec
                      , ProjectionSpec
-  build-depends:       aeson
+  build-depends:       QuickCheck
+                     , aeson
                      , base
                      , bytestring
                      , containers
@@ -55,8 +57,8 @@ test-suite dispenser-core-test
                      , hspec
                      , lens
                      , monad-control
-                     , QuickCheck
                      , random
+                     , resourcet
                      , stm
                      , streaming
                      , text
