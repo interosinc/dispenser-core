@@ -15,6 +15,7 @@ import qualified Dispenser.Catchup as Catchup
 import           Dispenser.Types
 import           Streaming
 import Control.Concurrent.STM.TVar
+import qualified Streaming.Prelude as S
 
 data MemConnection a = MemConnection
   { _memConnectionEvents :: TVar [Event a]
@@ -43,24 +44,24 @@ instance forall a. EventData a => PartitionConnection MemConnection a where
           -- TODO: sorts of events' and anything else
 
           f :: [Event a] -> [Event a]
-          f [] = map toEvent . toList $ batch
-          f events' = foldl g events' (toList batch)
+          f []     = zipWith (curry h) [EventNumber 0..] (toList batch)
+          f (x:xs) = foldl g (x:xs) (toList batch)
             where
               g :: [Event a] -> a -> [Event a]
-              g xs x = toEvent x:xs
+              g [] _ = panic "I thought this couldn't happen?"
+              g (e:es) payload = toEvent (succ $ e ^. eventNumber) payload:e:es
 
-          toEvent :: a -> Event a
-          toEvent payload = Event eventNumber' streamNames payload ts
-            where
-              eventNumber' = EventNumber undefined
+          h :: (EventNumber, a) -> Event a
+          h (en', payload) = toEvent en' payload
 
-          _ = batch :: NonEmptyBatch a
+          toEvent :: EventNumber -> a -> Event a
+          toEvent en payload = Event en streamNames payload ts
 
   fromNow :: (EventData a, MonadIO m, MonadResource m)
           => MemConnection a
           -> [StreamName]
           -> m (Stream (Of (Event a)) m r)
-  fromNow = undefined
+  fromNow = panic "Memory.fromNow not impl!"
 
   rangeStream :: (EventData a, MonadIO m, MonadResource m)
               => MemConnection a
@@ -68,25 +69,39 @@ instance forall a. EventData a => PartitionConnection MemConnection a where
               -> [StreamName]
               -> (EventNumber, EventNumber)
               -> m (Stream (Of (Event a)) m ())
-  rangeStream = undefined
+  rangeStream conn _batchSize _streamNames (minE, maxE) = do
+    events' :: [Event a] <- liftIO
+      . atomically
+      . readTVar
+      . view events
+      $ conn
+    return
+      . S.takeWhile ((<= maxE) . view eventNumber)
+      . S.dropWhile ((< minE) . view eventNumber)
+      . S.each
+      $ events'
 
 connect :: Text -> MemConnection a
-connect = undefined
+connect = panic "Memory.connect not impl!"
 
 currentEventNumber :: MemConnection a -> IO EventNumber
-currentEventNumber = undefined
+currentEventNumber conn = do
+  events' :: [Event a] <- liftIO . atomically . readTVar $ conn ^. events
+  return $ case head events' of
+    Nothing -> EventNumber (-1)
+    Just e  -> e ^. eventNumber
 
-currentStream :: Monad m
+currentStream :: (EventData a, MonadIO m, MonadResource m)
               => MemConnection a -> BatchSize -> [StreamName]
               -> m (Stream (Of (Event a)) m ())
 currentStream conn = currentStreamFrom conn (EventNumber 0)
 
-currentStreamFrom :: MemConnection a
-                  -> EventNumber
-                  -> BatchSize
-                  -> [StreamName]
+currentStreamFrom :: (EventData a, MonadIO m, MonadResource m)
+                  => MemConnection a -> EventNumber-> BatchSize -> [StreamName]
                   -> m (Stream (Of (Event a)) m ())
-currentStreamFrom = undefined
+currentStreamFrom conn minE batchSize streamNames = do
+  maxE <- liftIO $ currentEventNumber conn
+  rangeStream conn batchSize streamNames (minE, maxE)
 
 -- recreate = undefined
 
