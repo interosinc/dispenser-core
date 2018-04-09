@@ -5,6 +5,7 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE NoImplicitPrelude          #-}
 {-# LANGUAGE OverloadedStrings          #-}
+{-# LANGUAGE ScopedTypeVariables        #-}
 {-# LANGUAGE TemplateHaskell            #-}
 
 module Dispenser.Types where
@@ -21,8 +22,8 @@ newtype Batch a = Batch { unBatch :: [a] }
 newtype BatchSize = BatchSize { unBatchSize :: Word }
   deriving (Eq, Generic, Num, Ord, Read, Show)
 
-class PartitionConnection conn => Client client conn | client -> conn where
-  connect :: MonadIO m => PartitionName -> client -> m conn
+class PartitionConnection conn a => Client client conn a | client -> conn where
+  connect :: MonadIO m => PartitionName -> client -> m (conn a)
 
 newtype DatabaseURL = DatabaseURL { unDatabaseUrl :: Text }
   deriving (Eq, Generic, Ord, Read, Show)
@@ -56,17 +57,17 @@ data Partition = Partition
   , _partitionName :: PartitionName
   } deriving (Eq, Generic, Ord, Read, Show)
 
-class PartitionConnection pc where
+class PartitionConnection pc a where
   appendEvents :: (EventData a, MonadIO m, MonadResource m)
-               => pc -> [StreamName] -> NonEmptyBatch a -> m (Async EventNumber)
+               => pc a -> [StreamName] -> NonEmptyBatch a -> m (Async EventNumber)
   fromNow :: (EventData a, MonadIO m, MonadResource m)
-          => pc -> [StreamName] -> m (Stream (Of (Event a)) m r)
+          => pc a -> [StreamName] -> m (Stream (Of (Event a)) m r)
   rangeStream :: (EventData a, MonadIO m, MonadResource m)
-              => pc -> BatchSize -> [StreamName] -> (EventNumber, EventNumber)
+              => pc a -> BatchSize -> [StreamName] -> (EventNumber, EventNumber)
               -> m (Stream (Of (Event a)) m ())
 
-postEvent :: (EventData a, PartitionConnection pc, MonadIO m, MonadResource m)
-          => pc -> [StreamName] -> a -> m (Async EventNumber)
+postEvent :: (EventData a, PartitionConnection pc a, MonadIO m, MonadResource m)
+          => pc a -> [StreamName] -> a -> m (Async EventNumber)
 postEvent pc sns e = appendEvents pc sns (NonEmptyBatch $ e :| [])
 
 newtype PoolSize = PoolSize Word

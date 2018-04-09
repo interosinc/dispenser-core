@@ -1,3 +1,4 @@
+{-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE InstanceSigs          #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE NoImplicitPrelude     #-}
@@ -21,34 +22,36 @@ import Dispenser.Types   ( BatchSize
                          )
 import Streaming
 
-data NullClient = NullClient
+data NullClient a = NullClient
   deriving (Eq, Ord, Read, Show)
 
-data NullConnection = NullConnection
+data NullConnection a = NullConnection
   deriving (Eq, Ord, Read, Show)
 
-instance Client NullClient NullConnection where
-  connect :: MonadIO m => PartitionName -> NullClient -> m NullConnection
+instance Client (NullClient a) NullConnection a where
+  connect :: MonadIO m => PartitionName -> NullClient a -> m (NullConnection a)
   connect _ _ = return NullConnection
 
-instance PartitionConnection NullConnection where
+instance PartitionConnection NullConnection a where
   appendEvents :: MonadIO m
-               => [StreamName]
+               => NullConnection a
+               -> [StreamName]
                -> NonEmptyBatch a
-               -> NullConnection
                -> m (Async EventNumber)
   appendEvents _ _ _ = liftIO . async . return $ EventNumber 0
 
   fromNow :: MonadIO m
-          => [StreamName]
-          -> NullConnection
+          => NullConnection a
+          -> [StreamName]
           -> m (Stream (Of (Event a)) m r)
   fromNow _ _ = forever . liftIO . threadDelay $ 1000 * 1000 * 1000
 
   rangeStream :: MonadIO m
-              => BatchSize
+              => NullConnection a
+              -> BatchSize
               -> [StreamName]
               -> (EventNumber, EventNumber)
-              -> NullConnection
               -> m (Stream (Of (Event a)) m r)
+  -- TODO: should be empty instead of bottom, no?
   rangeStream _ _ _ _ = forever . liftIO . threadDelay $ 1000 * 1000 * 1000
+
