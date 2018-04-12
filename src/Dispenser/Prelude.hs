@@ -21,12 +21,10 @@ import Control.Lens                as Exports ( (^.)
                                               )
 import Control.Monad.Trans.Control as Exports ( MonadBaseControl )
 import Data.Aeson                  as Exports ( FromJSON
-                                              , FromJSONKey
                                               , Result( Error
                                                       , Success
                                                       )
                                               , ToJSON
-                                              , ToJSONKey
                                               , Value
                                               , fromJSON
                                               , toJSON
