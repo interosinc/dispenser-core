@@ -73,6 +73,9 @@ postEvent pc sns e = appendEvents pc sns (NonEmptyBatch $ e :| [])
 newtype PoolSize = PoolSize Word
   deriving (Eq, Generic, Ord, Read, Show)
 
+newtype ProjectionName = ProjectionName { unProjectionName :: Text }
+  deriving (Eq, Generic, Ord, Read, Show)
+
 newtype StreamName = StreamName { unStreamName :: Text }
   deriving (Eq, Generic, Ord, Read, Show)
 
