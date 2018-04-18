@@ -14,16 +14,6 @@ import qualified Dispenser.Memory  as Mem
 import           Dispenser.Types
 import           Streaming
 
-newtype TestEvent = TestEvent Int
-  deriving (Eq, Generic, Ord, Read, Show)
-
-instance FromJSON TestEvent
-instance ToJSON   TestEvent
-
-instance EventData TestEvent
-
-type TestStream a = Stream (Of (Event TestEvent)) IO a
-
 newtype TestInt = TestInt { unTestInt :: Int }
   deriving (Eq, Generic, Ord, Read, Show)
 
