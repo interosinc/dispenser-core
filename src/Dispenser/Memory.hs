@@ -11,11 +11,12 @@
 module Dispenser.Memory where
 
 import           Dispenser.Prelude
-import qualified Dispenser.Catchup as Catchup
+import qualified Streaming.Prelude           as S
+
+import           Control.Concurrent.STM.TVar
+import qualified Dispenser.Catchup           as Catchup
 import           Dispenser.Types
 import           Streaming
-import Control.Concurrent.STM.TVar
-import qualified Streaming.Prelude as S
 
 data MemConnection a = MemConnection
   { _memConnectionEvents :: TVar [Event a]

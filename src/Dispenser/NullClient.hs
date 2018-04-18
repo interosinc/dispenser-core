@@ -54,4 +54,3 @@ instance PartitionConnection NullConnection a where
               -> m (Stream (Of (Event a)) m r)
   -- TODO: should be empty instead of bottom, no?
   rangeStream _ _ _ _ = forever . liftIO . threadDelay $ 1000 * 1000 * 1000
-

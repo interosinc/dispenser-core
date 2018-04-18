@@ -7,12 +7,12 @@
 
 module TestHelpers where
 
-import Dispenser.Prelude
+import           Dispenser.Prelude
 
-import Streaming
-import Dispenser.Types
-import Dispenser.Memory
-import qualified Dispenser.Memory as Mem
+import           Dispenser.Memory
+import qualified Dispenser.Memory  as Mem
+import           Dispenser.Types
+import           Streaming
 
 newtype TestEvent = TestEvent Int
   deriving (Eq, Generic, Ord, Read, Show)
@@ -24,7 +24,7 @@ instance EventData TestEvent
 
 type TestStream a = Stream (Of (Event TestEvent)) IO a
 
-newtype TestInt = TestInt Int
+newtype TestInt = TestInt { unTestInt :: Int }
   deriving (Eq, Generic, Ord, Read, Show)
 
 instance FromJSON  TestInt
