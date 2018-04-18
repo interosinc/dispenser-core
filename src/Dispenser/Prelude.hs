@@ -30,10 +30,14 @@ import Data.Aeson                  as Exports ( FromJSON
                                               , toJSON
                                               )
 import Data.Time.Clock             as Exports ( UTCTime )
+import System.IO.Unsafe                       ( unsafePerformIO )
+
+debugLock :: MVar ()
+debugLock = unsafePerformIO $ newMVar ()
+{-# NOINLINE debugLock #-}
 
 debug :: MonadIO m => Text -> m ()
-debug = putLn . ("DEBUG: " <>)
--- debug = const $ return ()
+debug s = liftIO . withMVar debugLock $ \() -> putLn $ "DEBUG: " <> s
 
 sleep :: MonadIO m => Float -> m ()
 sleep n = liftIO . threadDelay . round $ n * 1000 * 1000

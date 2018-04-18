@@ -36,7 +36,7 @@ make config eventNum batchSize = do
   return $ clstream >>= \case
     Nothing :> _ -> do
       debug "Catchup.make: initial clstream was empty, so moving to catchup from 0..."
-      catchup (EventNumber 0)
+      catchup initialEventNumber
     Just lastEvent :> _ -> do
       debug "Catchup.make: Got a last event..."
       let lastEventNum = lastEvent ^. eventNumber

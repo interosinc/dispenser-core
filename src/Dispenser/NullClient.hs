@@ -38,7 +38,7 @@ instance PartitionConnection NullConnection a where
                -> [StreamName]
                -> NonEmptyBatch a
                -> m (Async EventNumber)
-  appendEvents _ _ _ = liftIO . async . return $ EventNumber 0
+  appendEvents _ _ _ = liftIO . async . return $ initialEventNumber
 
   fromNow :: MonadIO m
           => NullConnection a

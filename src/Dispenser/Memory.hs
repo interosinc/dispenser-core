@@ -18,7 +18,7 @@ import qualified Dispenser.Catchup           as Catchup
 import           Dispenser.Types
 import           Streaming
 
-data MemConnection a = MemConnection
+newtype MemConnection a = MemConnection
   { _memConnectionEvents :: TVar [Event a]
   }
 
@@ -33,27 +33,25 @@ instance forall a. EventData a => PartitionConnection MemConnection a where
   appendEvents conn streamNames batch = liftIO now >>= doAppend
     where
       doAppend ts = do
+        debug $ "doAppend ts=" <> show ts
+        deleteMeBefore <- liftIO . atomically . readTVar $ conn ^. events
+        debug $ "before: " <> show deleteMeBefore
         events' :: [Event a] <- liftIO . atomically $ do
           modifyTVar (conn ^. events) f
           readTVar (conn ^. events)
-        let lastEventMay :: Maybe (Event a) = lastMay events'
-        case lastEventMay of
+        debug $ "after: " <> show events'
+        case head events' :: Maybe (Event a) of
           Just (e :: Event a)  -> liftIO . async . return $ e ^. eventNumber
           Nothing ->
             panic "somehow after appending events from a NonEmpty, the full list is empty."
         where
-          -- TODO: sorts of events' and anything else
-
           f :: [Event a] -> [Event a]
-          f []     = zipWith (curry h) [EventNumber 0..] (toList batch)
-          f (x:xs) = foldl g (x:xs) (toList batch)
+          f es = (reverse . zipWith toEvent [en..] . toList $ batch) ++ es
             where
-              g :: [Event a] -> a -> [Event a]
-              g [] _ = panic "I thought this couldn't happen?"
-              g (e:es) payload = toEvent (succ $ e ^. eventNumber) payload:e:es
-
-          h :: (EventNumber, a) -> Event a
-          h (en', payload) = toEvent en' payload
+              en = maybe initialEventNumber
+                (succ . view eventNumber)
+                . head
+                $ es
 
           toEvent :: EventNumber -> a -> Event a
           toEvent en payload = Event en streamNames payload ts
@@ -62,9 +60,8 @@ instance forall a. EventData a => PartitionConnection MemConnection a where
           => MemConnection a
           -> [StreamName]
           -> m (Stream (Of (Event a)) m r)
-  fromNow conn streamNames = do
-    startingEn <- liftIO $ currentEventNumber conn
-    continueFrom conn streamNames startingEn
+  fromNow conn streamNames =
+    continueFrom conn streamNames =<< liftIO (currentEventNumber conn)
 
   rangeStream :: (EventData a, MonadIO m, MonadResource m)
               => MemConnection a
@@ -73,30 +70,43 @@ instance forall a. EventData a => PartitionConnection MemConnection a where
               -> (EventNumber, EventNumber)
               -> m (Stream (Of (Event a)) m ())
   rangeStream conn _batchSize _streamNames (minE, maxE) = do
-    events' :: [Event a] <- liftIO
+    debug $ "rangeStream " <> show (minE, maxE)
+    events' :: [Event a]
+      <- (reverse <$>)
+      . liftIO
       . atomically
       . readTVar
       . view events
       $ conn
-    return
-      . S.takeWhile ((<= maxE) . view eventNumber)
-      . S.dropWhile ((<  minE) . view eventNumber)
-      . S.each
-      $ events'
+    let events'' :: [Event a] = dropWhile ((< minE) . view eventNumber) events'
+    return $ if null events''
+      then mempty
+      else S.each $ takeWhile ((<= maxE) . view eventNumber) events''
 
-continueFrom :: MonadIO m
+continueFrom :: forall m a r. MonadIO m
              => MemConnection a -> [StreamName] -> EventNumber
              -> m (Stream (Of (Event a)) m r)
 continueFrom conn streamNames minE = do
-  events' :: [Event a] <- liftIO
+  debug $ "continueFrom " <> show minE
+  -- TODO: perf
+  events' :: [Event a]
+    <- (reverse <$>)
+    . liftIO
     . atomically
     . readTVar
     . view events
     $ conn
   -- TODO: non-sleep based solution
   case elligible events' of
-    []    -> sleep 0.25 >> continueFrom conn streamNames minE
-    (e:_) -> S.cons e  <$> continueFrom conn streamNames (succ $ e ^. eventNumber)
+    []    -> do
+      debug $ "no elligible events -- sleep 0.25 and continue from " <> show minE
+      sleep 0.25 >> continueFrom conn streamNames minE
+    (e:_) -> do
+      debug $ "elligible event " <> show (e ^. eventNumber)
+      debug $ "continuing from " <> show (succ $ e ^. eventNumber)
+      debug $ "S.cons " <> show (e ^. eventNumber)
+
+      return $ S.yield e >>= (const . join . lift . continueFrom conn streamNames $ succ (e ^. eventNumber))
   where
     elligible = filter (matchesStreams streamNames)
       . dropWhile ((< minE) . view eventNumber)
@@ -111,13 +121,13 @@ currentEventNumber :: MemConnection a -> IO EventNumber
 currentEventNumber conn = do
   events' :: [Event a] <- liftIO . atomically . readTVar $ conn ^. events
   return $ case head events' of
-    Nothing -> EventNumber (-1)
+    Nothing -> pred initialEventNumber
     Just e  -> e ^. eventNumber
 
 currentStream :: (EventData a, MonadIO m, MonadResource m)
               => MemConnection a -> BatchSize -> [StreamName]
               -> m (Stream (Of (Event a)) m ())
-currentStream conn = currentStreamFrom conn (EventNumber 0)
+currentStream conn = currentStreamFrom conn initialEventNumber
 
 currentStreamFrom :: (EventData a, MonadIO m, MonadResource m)
                   => MemConnection a -> EventNumber-> BatchSize -> [StreamName]
@@ -141,4 +151,4 @@ fromEventNumber conn = Catchup.make $ Catchup.Config
 fromZero :: (EventData a, MonadIO m, MonadResource m)
          => MemConnection a -> BatchSize
          -> m (Stream (Of (Event a)) m r)
-fromZero conn = fromEventNumber conn (EventNumber 0)
+fromZero conn = fromEventNumber conn initialEventNumber

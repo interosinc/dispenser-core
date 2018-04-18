@@ -39,3 +39,6 @@ postTestEvent conn = (void . wait =<<)
   . runResourceT
   . postEvent conn [StreamName "test"]
   . TestInt
+
+testSleep :: IO ()
+testSleep = sleep 3 >> return ()

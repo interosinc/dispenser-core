@@ -94,3 +94,6 @@ instance ToJSON   Timestamp
 
 makeClassy ''Event
 makeClassy ''Partition
+
+initialEventNumber :: EventNumber
+initialEventNumber = EventNumber 1

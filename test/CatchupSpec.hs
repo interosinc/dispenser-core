@@ -35,7 +35,7 @@ spec = describe "Catchup.make" $ do
   context "given 5 existing events with none incoming" $ do
     (_, catchup) <- runIO $ makeTestCatchup 5
     context "taking the first 5 from 0" $ do
-      let newTestStream = catchup (EventNumber 0) (BatchSize 10)
+      let newTestStream = catchup initialEventNumber (BatchSize 10)
       it "should find the first 5 events" $ do
         stream <- newTestStream
         events <- S.fst' <$> S.toList (S.take 5 stream)
@@ -44,7 +44,7 @@ spec = describe "Catchup.make" $ do
     (testHandle, catchup) <- runIO $ makeTestCatchup 5
     runIO $ advance 10 testHandle
     context "taking the first 15 from 0" $ do
-      let newTestStream = catchup (EventNumber 0) (BatchSize 10)
+      let newTestStream = catchup initialEventNumber (BatchSize 10)
       it "should find the first 15 events" $ do
         stream <- newTestStream
         events <- S.fst' <$> S.toList (S.take 15 stream)
