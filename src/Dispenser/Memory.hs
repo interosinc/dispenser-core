@@ -148,6 +148,8 @@ fromEventNumber conn = Catchup.make $ Catchup.Config
 
 -- TODO: make this generic over some class that fromEventNumber is in
 -- TODO: see also Server/pg
+-- TODO: should be renamed to fromInitial or something since initial is now 1
+-- (or we should go back to zero and fix the pg schema).
 fromZero :: (EventData a, MonadIO m, MonadResource m)
          => MemConnection a -> BatchSize
          -> m (Stream (Of (Event a)) m r)
