@@ -37,7 +37,8 @@ debugLock = unsafePerformIO $ newMVar ()
 {-# NOINLINE debugLock #-}
 
 debug :: MonadIO m => Text -> m ()
-debug s = liftIO . withMVar debugLock $ \() -> putLn $ "DEBUG: " <> s
+--debug s = liftIO . withMVar debugLock $ \() -> putLn $ "DEBUG: " <> s
+debug = const . return $ ()
 
 sleep :: MonadIO m => Float -> m ()
 sleep n = liftIO . threadDelay . round $ n * 1000 * 1000

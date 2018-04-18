@@ -61,7 +61,7 @@ instance forall a. EventData a => PartitionConnection MemConnection a where
           -> [StreamName]
           -> m (Stream (Of (Event a)) m r)
   fromNow conn streamNames =
-    continueFrom conn streamNames =<< liftIO (currentEventNumber conn)
+    continueFrom conn streamNames =<< liftIO (succ <$> currentEventNumber conn)
 
   rangeStream :: (EventData a, MonadIO m, MonadResource m)
               => MemConnection a

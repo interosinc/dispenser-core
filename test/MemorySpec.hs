@@ -22,7 +22,7 @@ main = hspec . after_ (sleep logDelay) $ spec
     logDelay = 0.2
 
 spec :: Spec
-spec = --let batchSizes = [1..10] in
+spec = -- let batchSizes = [1..10] in
   let batchSizes = [1] in
   describe "Dispenser.Memory" $ forM_ (map BatchSize batchSizes) $ \batchSize -> do
   context ("with " <> show batchSize) $ do
@@ -44,12 +44,9 @@ spec = --let batchSizes = [1..10] in
         (conn, stream) <- runResourceT testStream
         complete <- race testSleep $ do
           void . forkIO $ do
-            sleep 0.05
-            postTestEvent conn 4
-            sleep 0.05
-            postTestEvent conn 5
-            sleep 0.05
-            postTestEvent conn 6
+            sleep 0.05 >> postTestEvent conn 4
+            sleep 0.05 >> postTestEvent conn 5
+            sleep 0.05 >> postTestEvent conn 6
           let stream' = S.take 5 stream
           xs <- runResourceT (S.fst' <$> S.toList stream')
           map (view eventData) xs `shouldBe` map TestInt [1..5]
