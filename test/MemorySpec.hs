@@ -3,7 +3,7 @@
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
-module MemorySpec ( main, spec ) where
+module MemorySpec ( main, spec, tempFoo, tempBar ) where
 
 import           Dispenser.Prelude
 import qualified Streaming.Prelude            as S
@@ -22,7 +22,7 @@ main = hspec . after_ (sleep logDelay) $ spec
     logDelay = 0.2
 
 spec :: Spec
-spec = -- let batchSizes = [1..10] in
+spec = -- let batchSizes = [1..10] in -- TODO
   let batchSizes = [1] in
   describe "Dispenser.Memory" $ forM_ (map BatchSize batchSizes) $ \batchSize -> do
   context ("with " <> show batchSize) $ do
@@ -30,7 +30,6 @@ spec = -- let batchSizes = [1..10] in
     context "given a stream with 3 events in it" $ do
       let testStream = makeTestStream batchSize 3
 
-      -- WORKING
       it "should be able to take the first 2 immediately" $ do
         src <- snd <$> runResourceT testStream
         complete <- race testSleep $ do
@@ -39,7 +38,6 @@ spec = -- let batchSizes = [1..10] in
           sort (map (unEventNumber . view eventNumber) xs) `shouldBe` [1, 2]
         complete `shouldBe` Right ()
 
-      -- WRONG ANSWER
       it "should be able to take 5 if two more are posted asynchronously" $ do
         (conn, stream) <- runResourceT testStream
         complete <- race testSleep $ do
@@ -55,7 +53,6 @@ spec = -- let batchSizes = [1..10] in
     context "given a stream with 10 events in it" $ do
       let testStream = makeTestStream batchSize 10
 
-      -- TIMING OUT
       it "should be able to take all 10" $ do
         complete <- race testSleep $ do
           stream <- S.take 10 . snd <$> runResourceT testStream
@@ -65,7 +62,6 @@ spec = -- let batchSizes = [1..10] in
           return ()
         complete `shouldBe` Right ()
 
-      -- NOT WORKING
       it "should be able to take 15 if 5 are posted asynchronously" $ do
         (conn, stream) <- runResourceT testStream
         complete <- race testSleep $ do

@@ -83,8 +83,7 @@ handleCurrentStreamFrom :: MonadIO m
 handleCurrentStreamFrom testHandle start@(EventNumber s) (BatchSize bs) _ = do
   currentMaxEventNumber' <- handleCurrentEventNumber testHandle
   let end = max (EventNumber $ s + fromIntegral bs) currentMaxEventNumber'
-  -- succ to shift to 1-based indexing consistent with postgres
-  return . S.each $ map (f . succ) [start..end]
+  return . S.each $ map f [start..end]
   where
     f :: EventNumber -> Event TestInt
     f en@(EventNumber n) = Event en [] (TestInt . fromIntegral $ n) ts
