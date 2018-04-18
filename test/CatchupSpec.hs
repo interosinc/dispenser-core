@@ -83,28 +83,42 @@ handleCurrentStreamFrom :: MonadIO m
 handleCurrentStreamFrom testHandle start@(EventNumber s) (BatchSize bs) _ = do
   currentMaxEventNumber' <- handleCurrentEventNumber testHandle
   let end = max (EventNumber $ s + fromIntegral bs) currentMaxEventNumber'
-  return . S.each $ map f [start..end]
-  where
-    f :: EventNumber -> Event TestInt
-    f en@(EventNumber n) = Event en [] (TestInt . fromIntegral $ n) ts
-      where
-        ts = panic "ts should be unused"
+  return . S.each $ map makeTestEvent [start..end]
 
-handleFromEventNumber' :: (EventData a, MonadIO m)
+handleFromEventNumber' :: forall m r. MonadIO m
                        => TestHandle
-                       -> EventNumber -> BatchSize -> m (Stream (Of (Event a)) m r)
-handleFromEventNumber' = panic "handleFromEventNumber' not impl"
+                       -> EventNumber -> BatchSize -> m (Stream (Of (Event TestInt)) m r)
+handleFromEventNumber' testHandle start@(EventNumber s) (BatchSize bs) = do
+  currentMaxEventNumber' <- handleCurrentEventNumber testHandle
+  let start' = min currentMaxEventNumber' start
+      end    = max currentMaxEventNumber' (EventNumber $ s + fromIntegral bs)
+  let existing = S.each (map makeTestEvent [start'..end])
+  return $ existing >>= const nevermore
+  where
+    nevermore :: MonadIO m => Stream (Of (Event TestInt)) m r
+    nevermore = forever . sleep $ 1000
 
-handleFromNow' :: EventData a
+makeTestEvent :: EventNumber -> Event TestInt
+makeTestEvent en'@(EventNumber n) = Event en' [] (TestInt . fromIntegral $ n) ts
+  where
+    ts = panic "ts should be unused"
+
+handleFromNow' :: MonadIO m
                => TestHandle
-               -> [StreamName] -> m (Stream (Of (Event a)) m r)
-handleFromNow' = panic "handleFromNow' not impl"
+               -> [StreamName] -> m (Stream (Of (Event TestInt)) m r)
+handleFromNow' testHandle _streamNames = do
+  currentMaxEventNumber' <- liftIO $ handleCurrentEventNumber testHandle
+  handleFromEventNumber' testHandle currentMaxEventNumber' (BatchSize 10)
 
-handleRangeStream' :: (EventData a, MonadIO m)
+handleRangeStream' :: MonadIO m
                    => TestHandle
                    -> BatchSize -> [StreamName] -> (EventNumber, EventNumber)
-                   -> m (Stream (Of (Event a)) m ())
-handleRangeStream' = panic "handleRangeStream' not impl"
+                   -> m (Stream (Of (Event TestInt)) m ())
+handleRangeStream' testHandle (BatchSize bs) _streamNames (minE, maxE) = do
+  currentMaxEventNumber' <- liftIO $ handleCurrentEventNumber testHandle
+  let start = min currentMaxEventNumber' minE
+      end   = max currentMaxEventNumber' maxE
+  return . S.take (fromIntegral bs) . S.each $ (map makeTestEvent [start..end])
 
 makeTestCatchup :: Int
                 -> IO ( TestHandle
