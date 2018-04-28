@@ -1,0 +1,12 @@
+pipeline:
+  build:
+    image: fpco/stack-build:lts-9.21
+    secrets: [ builder_privatekey ]
+    commands:
+      - mkdir -p ~/.ssh
+      - '(echo "-----BEGIN RSA PRIVATE KEY-----"; echo $BUILDER_PRIVATEKEY | sed -e ''s/- /-\n/'' | sed -e ''s/ -/\n-/'' | tail -n +2 | head -n -1 | sed -e ''s/ /\n/g''; echo "-----END RSA PRIVATE KEY-----") > ~/.ssh/id_rsa'
+      - chmod 600 ~/.ssh/id_rsa
+      - ssh-keyscan -H github.com >> ~/.ssh/known_hosts && sleep 4
+      - echo 'Host focus-prelude.github.com\n\tHostname github.com\n' >> ~/.ssh/config
+      - stack build
+      - stack test
