@@ -26,11 +26,10 @@ data Config m a r where
          -> (BatchSize -> [StreamName] -> (EventNumber, EventNumber) -> m (Stream (Of (Event a)) m ()))   -- rangeStream
          -> Config m a r
 
-make :: forall m a r. (EventData a, MonadIO m)
+make :: forall m a r. MonadIO m
      => Config m a r -> EventNumber -> BatchSize -> m (Stream (Of (Event a)) m r)
 make config eventNum batchSize = do
-  debug $ "Catchup.make:"
-    <> " eventNum = " <> show eventNum
+  debug $ "Catchup.make:" <> " eventNum = " <> show eventNum
   clstream <- S.store S.last <$> currentStreamFrom eventNum batchSize streamNames
   debug "Catchup.make: returning clstream with continuation"
   return $ clstream >>= \case

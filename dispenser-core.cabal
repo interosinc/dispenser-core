@@ -16,9 +16,13 @@ cabal-version:       >=1.10
 library
   hs-source-dirs:      src
   ghc-options:         -Wall
+                       -Wcompat
+                       -Wincomplete-record-updates
+                       -Wincomplete-uni-patterns
+                       -Wredundant-constraints
   exposed-modules:     Dispenser.Catchup
                      , Dispenser.Core
-                     , Dispenser.Memory
+                     , Dispenser.Client.Memory
                      , Dispenser.Prelude
                      , Dispenser.Projections
                      , Dispenser.Types

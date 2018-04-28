@@ -1,18 +1,17 @@
 {-# LANGUAGE DeriveGeneric       #-}
-{-# LANGUAGE FlexibleContexts    #-}
 {-# LANGUAGE NoImplicitPrelude   #-}
 {-# LANGUAGE OverloadedStrings   #-}
-{-# LANGUAGE QuasiQuotes         #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module TestHelpers where
 
 import           Dispenser.Prelude
 
-import           Dispenser.Memory
-import qualified Dispenser.Memory  as Mem
+import           Data.Text                          ( pack )
+import           Dispenser.Client.Memory
+import qualified Dispenser.Client.Memory  as Client
 import           Dispenser.Types
-import           Streaming
+import           System.Random                      ( randomRIO )
 
 newtype TestInt = TestInt { unTestInt :: Int }
   deriving (Eq, Generic, Ord, Read, Show)
@@ -21,8 +20,18 @@ instance FromJSON  TestInt
 instance ToJSON    TestInt
 instance EventData TestInt
 
-createTestPartition :: MonadIO m => m (MemConnection a)
-createTestPartition = Mem.connect
+createTestPartition :: IO (MemConnection TestInt)
+createTestPartition = do
+  client' :: MemClient TestInt <- liftIO $ Client.new
+  name <- randomPartitionName
+  conn <- liftIO $ connect name client'
+  return $ conn
+  where
+    randomPartitionName :: IO PartitionName
+    randomPartitionName = PartitionName
+      . ("test_" <>)
+      . pack
+      <$> replicateM 10 (randomRIO ('a', 'z'))
 
 postTestEvent :: MemConnection TestInt -> Int -> IO ()
 postTestEvent conn = (void . wait =<<)

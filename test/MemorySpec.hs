@@ -1,16 +1,15 @@
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TupleSections #-}
-{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE NoImplicitPrelude   #-}
+{-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TupleSections       #-}
 
-module MemorySpec ( main, spec, tempFoo, tempBar ) where
+module MemorySpec ( main, spec ) where
 
 import           Dispenser.Prelude
 import qualified Streaming.Prelude            as S
 
 import           Control.Monad.Trans.Resource
-import           Dispenser.Memory
-import qualified Dispenser.Memory             as Mem
+import           Dispenser.Client.Memory
 import           Dispenser.Types
 import           Streaming
 import           Test.Hspec
@@ -24,7 +23,7 @@ main = hspec . after_ (sleep logDelay) $ spec
 spec :: Spec
 spec = -- let batchSizes = [1..10] in -- TODO
   let batchSizes = [1] in
-  describe "Dispenser.Memory" $ forM_ (map BatchSize batchSizes) $ \batchSize -> do
+  describe "Dispenser.Clients.Memory" $ forM_ (map BatchSize batchSizes) $ \batchSize -> do
   context ("with " <> show batchSize) $ do
 
     context "given a stream with 3 events in it" $ do
@@ -78,9 +77,3 @@ makeTestStream batchSize n = do
   conn <- liftIO createTestPartition
   mapM_ (liftIO . postTestEvent conn) [1..n]
   (conn,) <$> fromZero conn batchSize
-
-tempFoo :: IO (MemConnection TestInt)
-tempFoo = fst <$> (runResourceT $ makeTestStream (BatchSize 1) 2)
-
-tempBar :: IO (MemConnection TestInt)
-tempBar = Mem.connect
