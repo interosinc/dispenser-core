@@ -36,7 +36,7 @@ patched (z, xs) = project patchedFold xs
           Success a -> a
           Error e   -> panic $ "patched ERROR: " <> show e -- TODO
 
--- TODO: needs to return either r or (a, Stream ...) ? so we can have have
+-- TODO: needs to return either r or (z, Stream ...) ? so we can have have
 -- access to the zero value if it exists, to a) provide it to the user and b)
 -- do things like pass it to `patched` ...
 patches :: forall m a r. (Monad m, FromJSON a, ToJSON a)
