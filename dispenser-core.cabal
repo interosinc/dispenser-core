@@ -29,6 +29,7 @@ library
                      , data-default
                      , focus-prelude
                      , foldl
+                     , gdiff
                      , lens
                      , monad-control
                      , random
@@ -57,6 +58,7 @@ test-suite dispenser-core-test
                      , dispenser-core
                      , focus-prelude
                      , foldl
+                     , gdiff
                      , hspec
                      , lens
                      , monad-control
