@@ -18,12 +18,13 @@ library
   ghc-options:         -Wall
   exposed-modules:     Dispenser.Catchup
                      , Dispenser.Core
+                     , Dispenser.Diffs
                      , Dispenser.Memory
                      , Dispenser.Prelude
                      , Dispenser.Projections
                      , Dispenser.Types
   build-depends:       aeson
-                     , aeson-diff-generic
+                     , aeson-diff
                      , base  >= 4.7 && < 5
                      , bytestring
                      , containers
@@ -46,12 +47,13 @@ test-suite dispenser-core-test
   hs-source-dirs:      test
   main-is:             Spec.hs
   other-modules:       CatchupSpec
+                     , DiffsSpec
                      , MemorySpec
                      , ProjectionSpec
                      , TestHelpers
   build-depends:       QuickCheck
                      , aeson
-                     , aeson-diff-generic
+                     , aeson-diff
                      , base
                      , bytestring
                      , containers

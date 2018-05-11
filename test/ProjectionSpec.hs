@@ -21,8 +21,8 @@ spec :: Spec
 spec = do
   projectSpec
   projectMSpec
-  currentValueSpec
-  currentValueMSpec
+  currentEventValueSpec
+  currentEventValueMSpec
 
 projectSpec :: Spec
 projectSpec = describe "project" $ do
@@ -60,26 +60,26 @@ projectMSpec = describe "projectM" $ do
       val <- atomically $ readTVar var
       val `shouldBe` 16
 
-currentValueSpec :: Spec
-currentValueSpec = describe "currentValue" $ do
+currentEventValueSpec :: Spec
+currentEventValueSpec = describe "currentEventValue" $ do
   context "given an empty stream" $ do
     it "should return the correct zero value from the fold" $ do
       let stream :: Stream (Of (Event Int)) IO () = return ()
-      n <- currentValue sumFold stream
+      n <- currentEventValue sumFold stream
       n `shouldBe` 0
   context "given a non-empty stream" $ do
     it "should return the correct current value of the fold" $ do
       let stream :: Stream (Of (Event Int)) IO () = S.each . map testEvent $ [1..3]
-      n <- currentValue sumFold stream
+      n <- currentEventValue sumFold stream
       n `shouldBe` 6
 
-currentValueMSpec :: Spec
-currentValueMSpec = describe "currentValueM" $ do
+currentEventValueMSpec :: Spec
+currentEventValueMSpec = describe "currentEventValueM" $ do
   context "given an empty stream" $ do
     it "should return the correct zero value from the fold" $ do
       var <- atomically $ newTVar neg100
       let stream :: Stream (Of (Event Int)) IO () = return ()
-      n <- currentValueM (sumFoldM var) stream
+      n <- currentEventValueM (sumFoldM var) stream
       n `shouldBe` 0
       val <- atomically $ readTVar var
       val `shouldBe` 10
@@ -87,7 +87,7 @@ currentValueMSpec = describe "currentValueM" $ do
     it "should return the correct current value of the fold" $ do
       var <- atomically $ newTVar neg100
       let stream  :: Stream (Of (Event Int)) IO () = S.each . map testEvent $ [1..3]
-      n <- currentValueM (sumFoldM var) stream
+      n <- currentEventValueM (sumFoldM var) stream
       n `shouldBe` 6
       val <- atomically $ readTVar var
       val `shouldBe` 16
