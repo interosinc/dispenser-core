@@ -23,13 +23,13 @@ library
                      , Dispenser.Projections
                      , Dispenser.Types
   build-depends:       aeson
+                     , aeson-diff-generic
                      , base  >= 4.7 && < 5
                      , bytestring
                      , containers
                      , data-default
                      , focus-prelude
                      , foldl
-                     , gdiff
                      , lens
                      , monad-control
                      , random
@@ -51,6 +51,7 @@ test-suite dispenser-core-test
                      , TestHelpers
   build-depends:       QuickCheck
                      , aeson
+                     , aeson-diff-generic
                      , base
                      , bytestring
                      , containers
@@ -58,7 +59,6 @@ test-suite dispenser-core-test
                      , dispenser-core
                      , focus-prelude
                      , foldl
-                     , gdiff
                      , hspec
                      , lens
                      , monad-control
