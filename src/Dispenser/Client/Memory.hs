@@ -16,7 +16,7 @@ import qualified Streaming.Prelude           as S
 import           Control.Concurrent.STM.TVar
 import qualified Data.Map                    as Map
 import qualified Dispenser.Catchup           as Catchup
-import           Dispenser.Types hiding (partitionName)
+import           Dispenser.Types                        hiding ( partitionName )
 import           Streaming
 
 data MemClient a = MemClient

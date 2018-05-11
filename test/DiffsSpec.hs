@@ -6,9 +6,9 @@
 module DiffsSpec where
 
 import           Dispenser.Prelude
-import qualified Streaming.Prelude           as S
+import qualified Streaming.Prelude as S
 
-import Data.Aeson.Diff
+import           Data.Aeson.Diff
 import           Dispenser.Diffs
 import           Streaming
 import           Test.Hspec
@@ -53,7 +53,9 @@ patchedSpec :: Spec
 patchedSpec = describe "patched" $ do
   it "should correctly reassemble patch streams" $ do
     ps <- patches exampleStream
-    let Just v1 = head exampleValues
-        vstream = patched (v1, ps)
-    vlist <- S.fst' <$> S.toList vstream
-    vlist `shouldBe` exampleValues
+    case head exampleValues of
+      Nothing -> panic "unpossible!"
+      Just v1 -> do
+        let vstream = unsafePatched (v1, ps)
+        vlist <- S.fst' <$> S.toList vstream
+        vlist `shouldBe` exampleValues

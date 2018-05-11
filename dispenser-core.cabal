@@ -24,7 +24,6 @@ library
                      , Dispenser.Core
                      , Dispenser.Client.Memory
                      , Dispenser.Diffs
-                     , Dispenser.Memory
                      , Dispenser.Prelude
                      , Dispenser.Projections
                      , Dispenser.Types
