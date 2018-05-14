@@ -76,4 +76,4 @@ makeTestStream :: (MonadIO m, MonadResource m)
 makeTestStream batchSize n = do
   conn <- liftIO createTestPartition
   mapM_ (liftIO . postTestEvent conn) [1..n]
-  (conn,) <$> fromZero conn batchSize
+  (conn,) <$> fromOne conn batchSize

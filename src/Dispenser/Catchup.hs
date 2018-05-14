@@ -1,6 +1,7 @@
-{-# LANGUAGE LambdaCase        #-}
-{-# LANGUAGE NoImplicitPrelude #-}
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE LambdaCase            #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE NoImplicitPrelude     #-}
+{-# LANGUAGE OverloadedStrings     #-}
 
 module Dispenser.Catchup
      ( catchup
@@ -34,7 +35,7 @@ catchup conn batchSize streamNames eventNum = do
           nextEventNum = succ lastEventNum
       debug $ "lastEventNum=" <> show lastEventNum
       debug $ "nextEventNum=" <> show nextEventNum
-      currentEventNum <- liftIO . wait =<< currentEventNumber conn
+      currentEventNum <- currentEventNumber conn
       debug $ "currentEventNum=" <> show currentEventNum
       if eventNumberDelta currentEventNum lastEventNum > maxHandOffDelta
         then do

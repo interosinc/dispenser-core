@@ -34,7 +34,7 @@ createTestPartition = do
       <$> replicateM 10 (randomRIO ('a', 'z'))
 
 postTestEvent :: MemConnection TestInt -> Int -> IO ()
-postTestEvent conn = (void . wait =<<)
+postTestEvent conn = void
   . runResourceT
   . postEvent conn [StreamName "test"]
   . TestInt

@@ -70,10 +70,10 @@ class CanAppendEvents conn e where
   appendEvents :: ( EventData e
                   , MonadResource m
                   )
-               => conn e -> [StreamName] -> NonEmptyBatch e -> m (Async EventNumber)
+               => conn e -> [StreamName] -> NonEmptyBatch e -> m EventNumber
 
 class CanCurrentEventNumber conn e where
-  currentEventNumber :: MonadResource m => conn e -> m (Async EventNumber)
+  currentEventNumber :: MonadResource m => conn e -> m EventNumber
 
 class CanFromEventNumber conn e where
   fromEventNumber :: ( EventData e
@@ -89,8 +89,7 @@ currentStreamFrom :: ( EventData e
                   => conn e -> BatchSize -> [StreamName] -> EventNumber
                   -> m (Stream (Of (Event e)) m ())
 currentStreamFrom conn batchSize streamNames minE = do
-  cena <- currentEventNumber conn
-  maxE <- liftIO . wait $ cena
+  maxE <- currentEventNumber conn
   rangeStream conn batchSize streamNames (minE, maxE)
 
 fromNow :: ( EventData e
@@ -100,12 +99,11 @@ fromNow :: ( EventData e
            , MonadResource m
            )
         => conn e -> BatchSize -> [StreamName] -> m (Stream (Of (Event e)) m r)
-fromNow conn batchSize _streamNames = do
+fromNow conn batchSize _streamNames =
   -- TODO: filter by stream names? remove stream names?  is this where
   -- filtering should go ? it needs to be as low level as possible so that eg
   -- as few events leave the db as possible, etc.
-  en <- liftIO . wait =<< currentEventNumber conn
-  fromEventNumber conn batchSize en
+  fromEventNumber conn batchSize =<< currentEventNumber conn
 
 class CanRangeStream conn e where
   rangeStream :: ( EventData e
@@ -118,7 +116,7 @@ postEvent :: ( EventData e
              , CanAppendEvents conn e
              , MonadResource m
              )
-          => conn e -> [StreamName] -> e -> m (Async EventNumber)
+          => conn e -> [StreamName] -> e -> m EventNumber
 postEvent pc sns e = appendEvents pc sns (NonEmptyBatch $ e :| [])
 
 newtype PoolSize = PoolSize Word

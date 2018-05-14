@@ -5,6 +5,7 @@ module Dispenser.TransportExample where
 
 import Dispenser.Prelude hiding ( ThreadId )
 
+
 data ExampleEvent
   = MessagePosted PostedMessage
   | ThreadCreated CreatedThread

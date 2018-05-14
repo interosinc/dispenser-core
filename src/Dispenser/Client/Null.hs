@@ -5,22 +5,11 @@
 module Dispenser.Client.Null
      ( NullClient
      , NullConnection
-     , connect
-     , appendEvents
-     , fromNow
-     , rangeStream
      ) where
 
 import Dispenser.Prelude
 
-import Dispenser.Types   ( Client
-                         , PartitionConnection
-                         , appendEvents
-                         , connect
-                         , fromNow
-                         , initialEventNumber
-                         , rangeStream
-                         )
+import Dispenser.Types
 
 data NullClient a = NullClient
   deriving (Eq, Ord, Read, Show)
@@ -28,13 +17,19 @@ data NullClient a = NullClient
 data NullConnection a = NullConnection
   deriving (Eq, Ord, Read, Show)
 
-instance Client (NullClient a) NullConnection a where
+instance Client (NullClient e) NullConnection e where
   connect _ _ = return NullConnection
 
-instance PartitionConnection NullConnection a where
-  appendEvents _ _ _ = liftIO . async . return $ initialEventNumber
+instance CanAppendEvents NullConnection e where
+  appendEvents _ _ _ = return initialEventNumber
 
-  fromNow _ _ = forever . liftIO . threadDelay $ 1000 * 1000 * 1000
+instance CanCurrentEventNumber NullConnection e where
+  currentEventNumber = const . return $ initialEventNumber
 
-  -- TODO: should be empty instead of bottom, no?
-  rangeStream _ _ _ _ = forever . liftIO . threadDelay $ 1000 * 1000 * 1000
+instance CanFromEventNumber NullConnection e where
+  fromEventNumber _conn _batchSize _eventNum = return . forever . sleep $ 1000
+
+instance CanRangeStream NullConnection e where
+  rangeStream _conn _batchSize _streamNames _range = return mempty
+
+instance PartitionConnection NullConnection e

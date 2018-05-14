@@ -12,9 +12,10 @@ module Dispenser.Transport
      , unSelector
      ) where
 
-import           Dispenser.Prelude hiding ( Selector )
-import           Streaming
+import           Dispenser.Prelude      hiding ( Selector )
 import qualified Streaming.Prelude as S
+
+import           Streaming
 
 data Selector s a = Selector { unSelector :: s }
   deriving (Eq, Ord, Read, Show)
