@@ -32,23 +32,25 @@ newtype DatabaseURL = DatabaseURL { unDatabaseUrl :: Text }
 instance Default DatabaseURL where
   def = DatabaseURL "postgres://dispenser@localhost:5432/dispenser"
 
-data Event a = Event
+data Event e = Event
   { _eventNumber  :: EventNumber
   , _eventStreams :: [StreamName]
-  , _eventData    :: a
+  , _eventData    :: e
   , _createdAt    :: Timestamp
   } deriving (Eq, Functor, Generic, Ord, Read, Show)
 
--- TODO: Show a is probably too strong?
--- TODO: Should we require Generic?
-class (FromJSON a, ToJSON a, Show a) => EventData a
+-- TODO: Show a is probably too strong, but for now I'm leaving it.
+class ( FromJSON e
+      , Generic  e
+      , Show     e
+      , ToJSON   e
+      ) => EventData e
 
 newtype EventNumber = EventNumber { unEventNumber :: Integer }
   deriving (Enum, Eq, Generic, Ord, Read, Show)
 
 eventNumberDelta :: EventNumber -> EventNumber -> Integer
-eventNumberDelta (EventNumber n) (EventNumber m) =
-  abs $ fromIntegral n - fromIntegral m
+eventNumberDelta (EventNumber n) (EventNumber m) = abs $ fromIntegral n - fromIntegral m
 
 newtype NonEmptyBatch a = NonEmptyBatch { unNonEmptyBatch :: NonEmpty a }
   deriving (Eq, Foldable, Functor, Generic, Ord, Read, Show)
@@ -58,17 +60,65 @@ data Partition = Partition
   , _partitionName :: PartitionName
   } deriving (Eq, Generic, Ord, Read, Show)
 
-class PartitionConnection pc a where
-  appendEvents :: (EventData a, MonadResource m)
-               => pc a -> [StreamName] -> NonEmptyBatch a -> m (Async EventNumber)
-  fromNow :: (EventData a, MonadResource m)
-          => pc a -> [StreamName] -> m (Stream (Of (Event a)) m r)
-  rangeStream :: (EventData a, MonadResource m)
-              => pc a -> BatchSize -> [StreamName] -> (EventNumber, EventNumber)
-              -> m (Stream (Of (Event a)) m ())
+class ( CanAppendEvents conn e
+      , CanCurrentEventNumber conn e
+      , CanFromEventNumber conn e
+      , CanRangeStream conn e
+      ) => PartitionConnection conn e
 
-postEvent :: (EventData a, PartitionConnection pc a, MonadResource m)
-          => pc a -> [StreamName] -> a -> m (Async EventNumber)
+class CanAppendEvents conn e where
+  appendEvents :: ( EventData e
+                  , MonadResource m
+                  )
+               => conn e -> [StreamName] -> NonEmptyBatch e -> m (Async EventNumber)
+
+class CanCurrentEventNumber conn e where
+  currentEventNumber :: MonadResource m => conn e -> m (Async EventNumber)
+
+class CanFromEventNumber conn e where
+  fromEventNumber :: ( EventData e
+                     , MonadResource m
+                     )
+                  => conn e -> BatchSize -> EventNumber -> m (Stream (Of (Event e)) m r)
+
+currentStreamFrom :: ( EventData e
+                     , CanCurrentEventNumber conn e
+                     , CanRangeStream conn e
+                     , MonadResource m
+                     )
+                  => conn e -> BatchSize -> [StreamName] -> EventNumber
+                  -> m (Stream (Of (Event e)) m ())
+currentStreamFrom conn batchSize streamNames minE = do
+  cena <- currentEventNumber conn
+  maxE <- liftIO . wait $ cena
+  rangeStream conn batchSize streamNames (minE, maxE)
+
+fromNow :: ( EventData e
+           , CanFromEventNumber conn e
+           , CanCurrentEventNumber conn e
+           , MonadIO m
+           , MonadResource m
+           )
+        => conn e -> BatchSize -> [StreamName] -> m (Stream (Of (Event e)) m r)
+fromNow conn batchSize _streamNames = do
+  -- TODO: filter by stream names? remove stream names?  is this where
+  -- filtering should go ? it needs to be as low level as possible so that eg
+  -- as few events leave the db as possible, etc.
+  en <- liftIO . wait =<< currentEventNumber conn
+  fromEventNumber conn batchSize en
+
+class CanRangeStream conn e where
+  rangeStream :: ( EventData e
+                 , MonadResource m
+                 )
+              => conn e -> BatchSize -> [StreamName] -> (EventNumber, EventNumber)
+              -> m (Stream (Of (Event e)) m ())
+
+postEvent :: ( EventData e
+             , CanAppendEvents conn e
+             , MonadResource m
+             )
+          => conn e -> [StreamName] -> e -> m (Async EventNumber)
 postEvent pc sns e = appendEvents pc sns (NonEmptyBatch $ e :| [])
 
 newtype PoolSize = PoolSize Word
@@ -97,3 +147,12 @@ makeClassy ''Partition
 
 initialEventNumber :: EventNumber
 initialEventNumber = EventNumber 1
+
+-- TODO: make this generic over some class that fromEventNumber is in
+-- TODO: see also Server/pg
+fromOne :: ( EventData e
+           , MonadResource m
+           , PartitionConnection conn e
+           )
+        => conn e -> BatchSize -> m (Stream (Of (Event e)) m r)
+fromOne conn batchSize = fromEventNumber conn batchSize initialEventNumber

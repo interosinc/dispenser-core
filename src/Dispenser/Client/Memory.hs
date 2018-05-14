@@ -95,42 +95,26 @@ continueFrom conn streamNames minE = do
     matchesStreams :: [StreamName] -> Event a -> Bool
     matchesStreams _ _ = True  -- TODO
 
--- TODO: surely this can be cleaned up?
-currentEventNumber :: MemConnection a -> IO EventNumber
-currentEventNumber conn = fromMaybe initialEventNumber
-  <$> join . fmap (fmap (view eventNumber) . head) . Map.lookup (conn ^. partitionName)
-  <$> (atomically . readTVar $ conn ^. (client . partitions))
+-- -- TODO: surely this can be cleaned up?
+-- currentEventNumber :: MemConnection a -> IO EventNumber
+-- currentEventNumber conn = fromMaybe initialEventNumber
+--   <$> join . fmap (fmap (view eventNumber) . head) . Map.lookup (conn ^. partitionName)
+--   <$> (atomically . readTVar $ conn ^. (client . partitions))
 
-currentStream :: (EventData a, MonadResource m)
-              => MemConnection a -> BatchSize -> [StreamName]
-              -> m (Stream (Of (Event a)) m ())
-currentStream conn = currentStreamFrom conn initialEventNumber
+-- currentStream :: (EventData a, MonadResource m)
+--               => MemConnection a -> BatchSize -> [StreamName]
+--               -> m (Stream (Of (Event a)) m ())
+-- currentStream conn = currentStreamFrom conn initialEventNumber
 
-currentStreamFrom :: (EventData a, MonadResource m)
-                  => MemConnection a -> EventNumber-> BatchSize -> [StreamName]
-                  -> m (Stream (Of (Event a)) m ())
-currentStreamFrom conn minE batchSize streamNames = do
-  maxE <- liftIO $ currentEventNumber conn
-  rangeStream conn batchSize streamNames (minE, maxE)
-
-fromEventNumber :: forall m a r. (EventData a, MonadResource m)
-                => MemConnection a -> EventNumber -> BatchSize
-                -> m (Stream (Of (Event a)) m r)
-fromEventNumber conn = Catchup.make $ Catchup.Config
-  (currentEventNumber conn)
-  (currentStreamFrom conn)
-  (fromEventNumber conn)
-  (fromNow conn)
-  (rangeStream conn)
-
--- TODO: make this generic over some class that fromEventNumber is in
--- TODO: see also Server/pg
--- TODO: should be renamed to fromInitial or something since initial is now 1
--- (or we should go back to zero and fix the pg schema).
-fromZero :: (EventData a, MonadResource m)
-         => MemConnection a -> BatchSize
-         -> m (Stream (Of (Event a)) m r)
-fromZero conn = fromEventNumber conn initialEventNumber
+-- fromEventNumber :: forall m a r. (EventData a, MonadResource m)
+--                 => MemConnection a -> EventNumber -> BatchSize
+--                 -> m (Stream (Of (Event a)) m r)
+-- fromEventNumber conn = Catchup.make $ Catchup.Config
+--   (currentEventNumber conn)
+--   (currentStreamFrom conn)
+--   (fromEventNumber conn)
+--   (fromNow conn)
+--   (rangeStream conn)
 
 findOrCreateCurrentPartition :: MemConnection a -> IO [Event a]
 findOrCreateCurrentPartition conn = fromMaybe [] . Map.lookup (conn ^. partitionName)

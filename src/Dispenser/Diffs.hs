@@ -24,8 +24,8 @@ import           Dispenser.Projections             ( project
 import           Streaming
 
 unsafePatched :: forall m a r. (Monad m, FromJSON a, ToJSON a)
-        => (a, Stream (Of Patch) m r)
-        -> Stream (Of a) m r
+              => (a, Stream (Of Patch) m r)
+              -> Stream (Of a) m r
 unsafePatched (z, xs) = project (Fold f z identity) xs
   where
     f x p = case applyPatch p x of
