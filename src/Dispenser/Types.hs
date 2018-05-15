@@ -81,6 +81,12 @@ class CanFromEventNumber conn e where
                      )
                   => conn e -> BatchSize -> EventNumber -> m (Stream (Of (Event e)) m r)
 
+class CanFromNow conn e where
+  fromNow :: ( EventData e
+             , MonadResource m
+             )
+          => conn e -> BatchSize -> m (Stream (Of (Event e)) m r)
+
 currentStreamFrom :: ( EventData e
                      , CanCurrentEventNumber conn e
                      , CanRangeStream conn e
@@ -92,14 +98,14 @@ currentStreamFrom conn batchSize streamNames minE = do
   maxE <- currentEventNumber conn
   rangeStream conn batchSize streamNames (minE, maxE)
 
-fromNow :: ( EventData e
-           , CanFromEventNumber conn e
-           , CanCurrentEventNumber conn e
-           , MonadIO m
-           , MonadResource m
-           )
-        => conn e -> BatchSize -> [StreamName] -> m (Stream (Of (Event e)) m r)
-fromNow conn batchSize _streamNames =
+defaultFromNow :: ( EventData e
+                  , CanFromEventNumber conn e
+                  , CanCurrentEventNumber conn e
+                  , MonadIO m
+                  , MonadResource m
+                  )
+               => conn e -> BatchSize -> [StreamName] -> m (Stream (Of (Event e)) m r)
+defaultFromNow conn batchSize _streamNames =
   -- TODO: filter by stream names? remove stream names?  is this where
   -- filtering should go ? it needs to be as low level as possible so that eg
   -- as few events leave the db as possible, etc.

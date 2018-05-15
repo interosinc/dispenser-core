@@ -13,7 +13,7 @@ main :: IO ()
 main = hspec spec
 
 spec :: Spec
-spec = describe "catchup" $ do
+spec = describe "catchup" $
   it "should be tested" $
     pending
 

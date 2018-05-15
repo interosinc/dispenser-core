@@ -20,13 +20,17 @@ library
                        -Wincomplete-record-updates
                        -Wincomplete-uni-patterns
                        -Wredundant-constraints
-  exposed-modules:     Dispenser.Catchup
-                     , Dispenser.Core
+  exposed-modules:     Dispenser
+                     , Dispenser.Catchup
                      , Dispenser.Client.Memory
+                     , Dispenser.Client.Null
                      , Dispenser.Diffs
                      , Dispenser.Prelude
                      , Dispenser.Projections
                      , Dispenser.Types
+                     -- in development
+                     , Dispenser.Transport
+                     , Dispenser.TransportExample
   build-depends:       aeson
                      , aeson-diff
                      , base  >= 4.7 && < 5

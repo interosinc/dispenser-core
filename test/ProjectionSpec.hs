@@ -26,13 +26,15 @@ spec = do
 
 projectSpec :: Spec
 projectSpec = describe "project" $ do
-  context "given an empty stream" $ do
+
+  context "given an empty stream" $
     it "should return the correct zero value from the fold" $ do
       let stream  :: Stream (Of (Event Int)) IO () = return ()
           pStream :: Stream (Of Int) IO ()         = project sumEFold stream
       pList <- S.fst' <$> S.toList pStream
       pList `shouldBe` [0]
-  context "given a non-empty stream" $ do
+
+  context "given a non-empty stream" $
     it "should return the correct values of the fold for each event" $ do
       let stream  :: Stream (Of (Event Int)) IO () = S.each . map testEvent $ [1..3]
           pStream :: Stream (Of Int) IO ()         = project sumEFold stream
@@ -41,7 +43,8 @@ projectSpec = describe "project" $ do
 
 projectMSpec :: Spec
 projectMSpec = describe "projectM" $ do
-  context "given an empty stream" $ do
+
+  context "given an empty stream" $
     it "should return the correct zero value from the fold" $ do
       var <- newTVarIO neg100
       let stream  :: Stream (Of (Event Int)) IO () = return ()
@@ -50,7 +53,8 @@ projectMSpec = describe "projectM" $ do
       pList `shouldBe` [0]
       val <- atomically $ readTVar var
       val `shouldBe` 10
-  context "given a non-empty stream" $ do
+
+  context "given a non-empty stream" $
     it "should return the correct values of the fold for each event" $ do
       var <- atomically $ newTVar neg100
       let stream  :: Stream (Of (Event Int)) IO () = S.each . map testEvent $ [1..3]
@@ -62,12 +66,14 @@ projectMSpec = describe "projectM" $ do
 
 currentEventValueSpec :: Spec
 currentEventValueSpec = describe "currentEventValue" $ do
-  context "given an empty stream" $ do
+
+  context "given an empty stream" $
     it "should return the correct zero value from the fold" $ do
       let stream :: Stream (Of (Event Int)) IO () = return ()
       n <- currentEventValue sumFold stream
       n `shouldBe` 0
-  context "given a non-empty stream" $ do
+
+  context "given a non-empty stream" $
     it "should return the correct current value of the fold" $ do
       let stream :: Stream (Of (Event Int)) IO () = S.each . map testEvent $ [1..3]
       n <- currentEventValue sumFold stream
@@ -75,7 +81,8 @@ currentEventValueSpec = describe "currentEventValue" $ do
 
 currentEventValueMSpec :: Spec
 currentEventValueMSpec = describe "currentEventValueM" $ do
-  context "given an empty stream" $ do
+
+  context "given an empty stream" $
     it "should return the correct zero value from the fold" $ do
       var <- atomically $ newTVar neg100
       let stream :: Stream (Of (Event Int)) IO () = return ()
@@ -83,7 +90,8 @@ currentEventValueMSpec = describe "currentEventValueM" $ do
       n `shouldBe` 0
       val <- atomically $ readTVar var
       val `shouldBe` 10
-  context "given a non-empty stream" $ do
+
+  context "given a non-empty stream" $
     it "should return the correct current value of the fold" $ do
       var <- atomically $ newTVar neg100
       let stream  :: Stream (Of (Event Int)) IO () = S.each . map testEvent $ [1..3]

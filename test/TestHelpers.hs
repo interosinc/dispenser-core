@@ -22,10 +22,9 @@ instance EventData TestInt
 
 createTestPartition :: IO (MemConnection TestInt)
 createTestPartition = do
-  client' :: MemClient TestInt <- liftIO $ Client.new
+  client' :: MemClient TestInt <- liftIO Client.new
   name <- randomPartitionName
-  conn <- liftIO $ connect name client'
-  return $ conn
+  liftIO $ connect name client'
   where
     randomPartitionName :: IO PartitionName
     randomPartitionName = PartitionName
@@ -40,4 +39,4 @@ postTestEvent conn = void
   . TestInt
 
 testSleep :: IO ()
-testSleep = sleep 3 >> return ()
+testSleep = void $ sleep 3

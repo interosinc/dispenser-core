@@ -42,7 +42,7 @@ exampleStream :: Monad m => Stream (Of ExampleValue) m ()
 exampleStream = S.each exampleValues
 
 patchesSpec :: Spec
-patchesSpec = describe "patches" $ do
+patchesSpec = describe "patches" $
   it "should generate correct patches" $ do
     ps :: [Patch] <- S.fst' <$> (S.toList =<< patches exampleStream)
     show ps `shouldBe` expected
@@ -50,7 +50,7 @@ patchesSpec = describe "patches" $ do
       expected = "[Patch {patchOperations = [Add {changePointer = Pointer {pointerPath = [OKey \"bars\",AKey 0]}, changeValue = Number 1.0}]},Patch {patchOperations = [Add {changePointer = Pointer {pointerPath = [OKey \"bars\",AKey 1]}, changeValue = Number 2.0}]},Patch {patchOperations = [Rep {changePointer = Pointer {pointerPath = [OKey \"foo\"]}, changeValue = String \"bar\"}]},Patch {patchOperations = [Rem {changePointer = Pointer {pointerPath = [OKey \"bars\",AKey 0]}}]}]" :: Text
 
 patchedSpec :: Spec
-patchedSpec = describe "patched" $ do
+patchedSpec = describe "patched" $
   it "should correctly reassemble patch streams" $ do
     ps <- patches exampleStream
     case head exampleValues of

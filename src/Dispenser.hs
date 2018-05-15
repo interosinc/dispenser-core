@@ -1,4 +1,4 @@
-module Dispenser.Core
+module Dispenser
      ( module Exports
      ) where
 

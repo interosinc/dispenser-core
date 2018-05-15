@@ -1,4 +1,3 @@
-{-# LANGUAGE DeriveGeneric       #-}
 {-# LANGUAGE LambdaCase          #-}
 {-# LANGUAGE NoImplicitPrelude   #-}
 {-# LANGUAGE OverloadedStrings   #-}
@@ -42,7 +41,7 @@ patches xs = S.next xs >>= \case
   Left r         -> return $ return r
   where
     f :: (a, a) -> a -> m (a, a)
-    f (_, b) c = return $ (b, c)
+    f (_, b) c = return (b, c)
 
     ex :: (a, a) -> m Patch
     ex = return . uncurry makePatch

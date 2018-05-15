@@ -2,6 +2,7 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE NoImplicitPrelude     #-}
 {-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE ScopedTypeVariables   #-}
 
 module Dispenser.Catchup
      ( catchup
@@ -13,8 +14,10 @@ import qualified Streaming.Prelude as S
 import           Dispenser.Types
 import           Streaming
 
-catchup :: ( EventData e
+catchup :: forall conn e m r.
+           ( EventData e
            , CanFromEventNumber conn e
+           , CanFromNow conn e
            , CanCurrentEventNumber conn e
            , CanRangeStream conn e
            , MonadResource m
@@ -49,7 +52,7 @@ catchup conn batchSize streamNames eventNum = do
 
     catchup' en = do
       debug $ "Catchup.make:catchup: en=" <> show en
-      join . lift $ fromNow conn batchSize streamNames >>= chaseFrom en
+      join . lift . chaseFrom en =<< (join . lift $ fromNow conn batchSize)
 
     chaseFrom startNum stream = do
       debug $ "chaseFrom: startNum=" <> show startNum <> ", stream=..."

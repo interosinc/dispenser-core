@@ -13,8 +13,9 @@ import qualified Streaming.Prelude           as S
 import           Control.Concurrent.STM.TVar
 import qualified Data.Map                    as Map
 import           Dispenser.Types                    hiding ( partitionName )
+import           Streaming
 
-data MemClient a = MemClient
+newtype MemClient a = MemClient
   { _memClientPartitions :: TVar (Map PartitionName [Event a])
   }
 
@@ -33,11 +34,38 @@ instance EventData e => PartitionConnection MemConnection e
 
 instance CanCurrentEventNumber MemConnection e where
   currentEventNumber conn = fromMaybe initialEventNumber
-    <$> join . fmap (fmap (view eventNumber) . head) . Map.lookup (conn ^. partitionName)
+    . join . fmap (fmap (view eventNumber) . head) . Map.lookup (conn ^. partitionName)
     <$> (liftIO . atomically . readTVar $ conn ^. (client . partitions))
 
 instance CanFromEventNumber MemConnection e where
-  fromEventNumber = panic "MemConnection fromEventNumber not impl"
+  fromEventNumber conn _batchSize _eventNum = do
+    en <- succ <$> currentEventNumber conn
+    continueFrom conn en
+
+-- TODO: put streamNames back
+continueFrom :: MonadIO m
+             => MemConnection a -> EventNumber
+             -> m (Stream (Of (Event a)) m r)
+continueFrom conn minE = do
+  debug $ "continueFrom " <> show minE
+  events' <- liftIO $ findOrCreateCurrentPartition conn
+  -- TODO: non-sleep based solution
+  case elligible events' of
+    []    -> do
+      debug $ "no elligible events -- sleep 0.25 and continue from " <> show minE
+      sleep 0.25 >> continueFrom conn minE
+    (e:_) -> do
+      debug $ "elligible event " <> show (e ^. eventNumber)
+      debug $ "continuing from " <> show (succ $ e ^. eventNumber)
+      debug $ "S.cons " <> show (e ^. eventNumber)
+
+      return $ S.yield e >>= (const . join . lift . continueFrom conn $ succ (e ^. eventNumber))
+  where
+    elligible = -- filter (matchesStreams streamNames) .
+      dropWhile ((< minE) . view eventNumber)
+
+    -- matchesStreams :: [StreamName] -> Event a -> Bool
+    -- matchesStreams _ _ = True  -- TODO
 
 instance EventData e => Client (MemClient e) MemConnection e where
   connect partName client' = return $ MemConnection client' partName

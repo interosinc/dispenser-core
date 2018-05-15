@@ -17,7 +17,7 @@ import qualified Streaming.Prelude as S
 
 import           Streaming
 
-data Selector s a = Selector { unSelector :: s }
+newtype Selector s a = Selector { unSelector :: s }
   deriving (Eq, Ord, Read, Show)
 
 class Transport t s a where
@@ -28,7 +28,7 @@ data NullTransport s a = NullTransport
 instance Transport (NullTransport s a) s a where
   subscribe _ _ = forever $ sleep 10000
 
-data ConstTransport s a = ConstTransport { constValue :: a }
+newtype ConstTransport s a = ConstTransport { constValue :: a }
 
 instance Transport (ConstTransport s a) s a where
   subscribe transp sel = do
