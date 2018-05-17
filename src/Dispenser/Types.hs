@@ -87,6 +87,16 @@ class CanFromNow conn e where
              )
           => conn e -> BatchSize -> m (Stream (Of (Event e)) m r)
 
+currentStream :: ( EventData e
+                 , CanCurrentEventNumber conn e
+                 , CanRangeStream conn e
+                 , MonadResource m
+                 )
+              => conn e -> BatchSize -> [StreamName]
+              -> m (Stream (Of (Event e)) m ())
+currentStream conn batchSize streamNames =
+  currentStreamFrom conn batchSize streamNames (EventNumber 0)
+
 currentStreamFrom :: ( EventData e
                      , CanCurrentEventNumber conn e
                      , CanRangeStream conn e
