@@ -7,6 +7,7 @@
 module CatchupSpec where
 
 import Dispenser.Prelude
+
 import Test.Hspec
 
 main :: IO ()
