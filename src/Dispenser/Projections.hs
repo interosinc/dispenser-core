@@ -32,6 +32,9 @@ project (Fold f z ex) = S.scan f z ex
 projectM :: Monad m => FoldM m a b -> Stream (Of a) m r -> Stream (Of b) m r
 projectM (FoldM f z ex) = S.scanM f z ex
 
+-- TODO: Maybe just projectMCanWriteCache where TVar is just one implementation of
+--       CanWriteCache?
+
 projectMTVar :: forall m a b r. (MonadBaseControl IO m, MonadIO m)
              => FoldM m a b -> Stream (Of a) m r -> m (TVar b)
 projectMTVar f@(FoldM _ z ex) stream = do
