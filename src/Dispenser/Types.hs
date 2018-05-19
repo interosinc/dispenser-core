@@ -89,6 +89,17 @@ class CanFromNow conn e where
              )
           => conn e -> BatchSize -> m (Stream (Of (Event e)) m r)
 
+-- TODO: Should we really separate fromNow and continueFrom or should fromNow
+--       be the only primitive for this stuff?  If we went that route we should
+--       be able to express continueFrom in terms of canRangeStream +
+--       continueFromNow generically, which is what our original Catchup
+--       template did? Also what's the difference between continueFrom and
+--       fromEventNumber? can the former be replaced entirely with the later?
+
+-- TODO: make sure that it's possible to implement any particular function for
+--       efficiency, but that if you don't need/want to do that you can
+--       implement and entire PartitionConnection in as few functions / as
+--       little code as possible
 genericFromNow :: forall conn e m r.
                   ( CanCurrentEventNumber conn e
                   , CanContinueFrom conn e
