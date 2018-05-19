@@ -46,9 +46,11 @@ instance CanFromNow MemConnection e where
     en <- succ <$> currentEventNumber conn
     continueFrom conn en
 
+-- TODO: CanContinueFrom with default implementation of fromNow as genericFromNow
+--       in terms of CanContinueFrom
 -- TODO: put streamNames back
 -- TODO: batchSize
-continueFrom :: (MonadIO m
+continueFrom :: ( MonadIO m
                 , Show a
                 ) -- TODO: remove Show a after debuggery
              => MemConnection a -> EventNumber
