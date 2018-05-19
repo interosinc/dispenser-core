@@ -1,5 +1,6 @@
 {-# LANGUAGE FlexibleInstances      #-}
 {-# LANGUAGE FunctionalDependencies #-}
+{-# LANGUAGE InstanceSigs           #-}
 {-# LANGUAGE LambdaCase             #-}
 {-# LANGUAGE NoImplicitPrelude      #-}
 {-# LANGUAGE OverloadedStrings      #-}
@@ -39,47 +40,41 @@ instance CanCurrentEventNumber MemConnection e where
 
 -- TODO: put streamNames back
 instance CanFromEventNumber MemConnection e where
-  fromEventNumber conn _batchSize = continueFrom conn
+  fromEventNumber conn batchSize = continueFrom conn batchSize
 
 instance CanFromNow MemConnection e where
-  fromNow conn _batchSize = do
-    en <- succ <$> currentEventNumber conn
-    continueFrom conn en
+  fromNow = genericFromNow
 
--- TODO: CanContinueFrom with default implementation of fromNow as genericFromNow
---       in terms of CanContinueFrom
--- TODO: put streamNames back
--- TODO: batchSize
-continueFrom :: ( MonadIO m
-                , Show a
-                ) -- TODO: remove Show a after debuggery
-             => MemConnection a -> EventNumber
-             -> m (Stream (Of (Event a)) m r)
-continueFrom conn minE = do
-  debug $ "continueFrom " <> show minE
-  events' <- liftIO $ findOrCreateCurrentPartition conn
-  --let _ = events' :: [Event a]
-  debug $ "events' => " <> show events'
-  -- TODO: non-sleep based solution
-  case elligible events' of
-    []    -> do
-      debug $ "no elligible events -- sleep 0.25 and continue from " <> show minE
-      sleep 0.25 >> continueFrom conn minE
-    es@(e:_) -> case lastMay es of
-      Nothing -> panic "unpossible!" -- TODO
-      Just le -> do
-        debug $ "first elligible event " <> show (e ^. eventNumber)
-        debug $ "last elligible event " <> show (le ^. eventNumber)
-        debug $ "S.cons through " <> show (le ^. eventNumber)
-        debug $ "continuing from " <> show (succ $ le ^. eventNumber)
-        return $ S.each es
-          >>= (const . join . lift . continueFrom conn $ succ (le ^. eventNumber))
-  where
-    elligible = -- filter (matchesStreams streamNames) .
-      dropWhile ((< minE) . view eventNumber)
+instance CanContinueFrom MemConnection e where
+  continueFrom :: MonadResource m
+               => MemConnection a -> BatchSize -> EventNumber
+               -> m (Stream (Of (Event a)) m r)
+  continueFrom conn batchSize minE = do
+  -- TODO: batchSize
+  -- TODO: put streamNames back
+    debug $ "continueFrom " <> show minE
+    events' <- liftIO $ findOrCreateCurrentPartition conn
+    -- TODO: non-sleep based solution
+    case elligible events' of
+      []    -> do
+        debug $ "no elligible events -- sleep 0.25"
+        sleep 0.25 >> continueFrom conn batchSize minE
+      es@(e:_) -> case lastMay es of
+        Nothing -> panic "unpossible!" -- TODO
+        Just le -> do
+          debug $ "first elligible event " <> show (e ^. eventNumber)
+          debug $ "last elligible event " <> show (le ^. eventNumber)
+          debug $ "S.cons through " <> show (le ^. eventNumber)
+          debug $ "continuing from " <> show (succ $ le ^. eventNumber)
+          return $ S.each es
+            >>= (const . join . lift . continueFrom conn batchSize $
+                   succ (le ^. eventNumber))
+    where
+      elligible = -- filter (matchesStreams streamNames) .
+        dropWhile ((< minE) . view eventNumber)
 
-    -- matchesStreams :: [StreamName] -> Event a -> Bool
-    -- matchesStreams _ _ = True  -- TODO
+      -- matchesStreams :: [StreamName] -> Event a -> Bool
+      -- matchesStreams _ _ = True  -- TODO
 
 instance EventData e => Client (MemClient e) MemConnection e where
   connect partName client' = return $ MemConnection client' partName

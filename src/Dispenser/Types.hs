@@ -89,6 +89,21 @@ class CanFromNow conn e where
              )
           => conn e -> BatchSize -> m (Stream (Of (Event e)) m r)
 
+genericFromNow :: forall conn e m r.
+                  ( CanCurrentEventNumber conn e
+                  , CanContinueFrom conn e
+                  , MonadResource m
+                  )
+               => conn e -> BatchSize -> m (Stream (Of (Event e)) m r)
+genericFromNow conn batchSize = do
+  en <- succ <$> currentEventNumber conn
+  continueFrom conn batchSize en
+
+class CanContinueFrom conn e where
+  continueFrom :: MonadResource m
+               => conn e -> BatchSize -> EventNumber
+               -> m (Stream (Of (Event e)) m r)
+
 currentStream :: ( EventData e
                  , CanCurrentEventNumber conn e
                  , CanRangeStream conn e
