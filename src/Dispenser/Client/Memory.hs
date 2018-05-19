@@ -33,7 +33,7 @@ new = MemClient <$> newTVarIO Map.empty
 instance EventData e => PartitionConnection MemConnection e
 
 instance CanCurrentEventNumber MemConnection e where
-  currentEventNumber conn = fromMaybe initialEventNumber
+  currentEventNumber conn = fromMaybe (pred initialEventNumber)
     . join . fmap (fmap (view eventNumber) . head) . Map.lookup (conn ^. partitionName)
     <$> (liftIO . atomically . readTVar $ conn ^. (client . partitions))
 
@@ -48,23 +48,27 @@ instance CanFromNow MemConnection e where
 
 -- TODO: put streamNames back
 -- TODO: batchSize
-continueFrom :: MonadIO m
+continueFrom :: (MonadIO m
+                , Show a
+                ) -- TODO: remove Show a after debuggery
              => MemConnection a -> EventNumber
              -> m (Stream (Of (Event a)) m r)
 continueFrom conn minE = do
   debug $ "continueFrom " <> show minE
   events' <- liftIO $ findOrCreateCurrentPartition conn
+  --let _ = events' :: [Event a]
+  debug $ "events' => " <> show events'
   -- TODO: non-sleep based solution
   case elligible events' of
     []    -> do
       debug $ "no elligible events -- sleep 0.25 and continue from " <> show minE
       sleep 0.25 >> continueFrom conn minE
-    (e:_) -> do
-      debug $ "elligible event " <> show (e ^. eventNumber)
+    es@(e:_) -> do
+      debug $ "last elligible event " <> show (e ^. eventNumber)
       debug $ "continuing from " <> show (succ $ e ^. eventNumber)
-      debug $ "S.cons " <> show (e ^. eventNumber)
-
-      return $ S.yield e >>= (const . join . lift . continueFrom conn $ succ (e ^. eventNumber))
+      debug $ "S.cons through " <> show (e ^. eventNumber)
+      return $ S.each (reverse es)
+        >>= (const . join . lift . continueFrom conn $ succ (e ^. eventNumber))
   where
     elligible = -- filter (matchesStreams streamNames) .
       dropWhile ((< minE) . view eventNumber)

@@ -29,6 +29,25 @@ spec = -- let batchSizes = [1..10] in -- TODO
     context "given a stream with 3 events in it" $ do
       let testStream = makeTestStream batchSize 3
 
+      it "should be able to take the available events twice in a row" $ do
+        conn <- fst <$> runResourceT testStream
+        curEventNum <- runResourceT $ currentEventNumber conn
+        let numAvail = fromIntegral . unEventNumber $ curEventNum
+
+        results1 <- runResourceT $ do
+          events <- fromOne conn batchSize
+          S.fst' <$> S.toList (S.map (view eventData) . S.take numAvail $ events)
+        results1 `shouldBe` map TestInt [1..3]
+
+        results2 <- runResourceT $ do
+          events <- fromOne conn batchSize
+          S.fst' <$> S.toList (S.map (view eventData) . S.take numAvail $ events)
+        results2 `shouldBe` map TestInt [1..3]
+
+        -- if it makes it here it succeeds... TODO: there's probably a way to
+        -- express that better in hspec than this fake assertion.
+        1 `shouldBe` (1 :: Int)
+
       it "should be able to take the first 2 immediately" $ do
         src <- snd <$> runResourceT testStream
         complete <- race testSleep $ do
@@ -74,6 +93,9 @@ makeTestStream :: (MonadIO m, MonadResource m)
                => BatchSize -> Int
                -> m (MemConnection TestInt, Stream (Of (Event TestInt)) m r)
 makeTestStream batchSize n = do
+  debug "makeTestStream creating partition..."
   conn <- liftIO createTestPartition
+  debug $ "makeTestStream posting " <> show n <> " events..."
   mapM_ (liftIO . postTestEvent conn) [1..n]
+  debug $ "makeTestStream returning"
   (conn,) <$> fromOne conn batchSize

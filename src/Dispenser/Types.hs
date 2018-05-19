@@ -46,6 +46,8 @@ class ( FromJSON e
       , ToJSON   e
       ) => EventData e
 
+instance EventData ()
+
 newtype EventNumber = EventNumber { unEventNumber :: Integer }
   deriving (Enum, Eq, Generic, Ord, Read, Show)
 
