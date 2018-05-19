@@ -63,12 +63,15 @@ continueFrom conn minE = do
     []    -> do
       debug $ "no elligible events -- sleep 0.25 and continue from " <> show minE
       sleep 0.25 >> continueFrom conn minE
-    es@(e:_) -> do
-      debug $ "last elligible event " <> show (e ^. eventNumber)
-      debug $ "continuing from " <> show (succ $ e ^. eventNumber)
-      debug $ "S.cons through " <> show (e ^. eventNumber)
-      return $ S.each (reverse es)
-        >>= (const . join . lift . continueFrom conn $ succ (e ^. eventNumber))
+    es@(e:_) -> case lastMay es of
+      Nothing -> panic "unpossible!" -- TODO
+      Just le -> do
+        debug $ "first elligible event " <> show (e ^. eventNumber)
+        debug $ "last elligible event " <> show (le ^. eventNumber)
+        debug $ "S.cons through " <> show (le ^. eventNumber)
+        debug $ "continuing from " <> show (succ $ le ^. eventNumber)
+        return $ S.each es
+          >>= (const . join . lift . continueFrom conn $ succ (le ^. eventNumber))
   where
     elligible = -- filter (matchesStreams streamNames) .
       dropWhile ((< minE) . view eventNumber)
@@ -106,7 +109,8 @@ instance EventData e => CanRangeStream MemConnection e where
       <$> liftIO (findOrCreateCurrentPartition conn)
 
 findOrCreateCurrentPartition :: MemConnection a -> IO [Event a]
-findOrCreateCurrentPartition conn = fromMaybe [] . Map.lookup (conn ^. partitionName)
+findOrCreateCurrentPartition conn = reverse . fromMaybe []
+  . Map.lookup (conn ^. partitionName)
   <$> (atomically . readTVar $ conn ^. (client . partitions))
 
 modifyPartition :: MemConnection a ->  ([Event a] -> [Event a]) -> IO ()
