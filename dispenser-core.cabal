@@ -29,8 +29,8 @@ library
                      , Dispenser.Projections
                      , Dispenser.Types
                      -- in development
-                     , Dispenser.Transport
-                     , Dispenser.TransportExample
+                     -- , Dispenser.Transport
+                     -- , Dispenser.TransportExample
   build-depends:       aeson
                      , aeson-diff
                      , base  >= 4.7 && < 5

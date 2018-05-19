@@ -37,12 +37,17 @@ instance CanCurrentEventNumber MemConnection e where
     . join . fmap (fmap (view eventNumber) . head) . Map.lookup (conn ^. partitionName)
     <$> (liftIO . atomically . readTVar $ conn ^. (client . partitions))
 
+-- TODO: put streamNames back
 instance CanFromEventNumber MemConnection e where
-  fromEventNumber conn _batchSize _eventNum = do
+  fromEventNumber conn _batchSize = continueFrom conn
+
+instance CanFromNow MemConnection e where
+  fromNow conn _batchSize = do
     en <- succ <$> currentEventNumber conn
     continueFrom conn en
 
 -- TODO: put streamNames back
+-- TODO: batchSize
 continueFrom :: MonadIO m
              => MemConnection a -> EventNumber
              -> m (Stream (Of (Event a)) m r)
