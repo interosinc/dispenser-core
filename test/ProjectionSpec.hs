@@ -21,6 +21,7 @@ spec :: Spec
 spec = do
   projectSpec
   projectMSpec
+  projectMTVarSpec
   currentEventValueSpec
   currentEventValueMSpec
 
@@ -63,6 +64,26 @@ projectMSpec = describe "projectM" $ do
       pList `shouldBe` [0,1,3,6]
       val <- atomically $ readTVar var
       val `shouldBe` 16
+
+projectMTVarSpec :: Spec
+projectMTVarSpec = describe "projectMTVar" $ do
+
+  context "given an empty stream" $ do
+    let stream  :: Stream (Of Int) IO () = return ()
+
+    it "the TVar contains the zero of the projection" $ do
+      var <- projectMTVar (generalize sumFold) stream
+      val <- atomically $ readTVar var
+      val `shouldBe` 0
+
+  context "given a non-empty stream" $ do
+    let stream = S.each [1..3 :: Int]
+
+    it "should return the correct values of the fold for each event" $ do
+      var <- projectMTVar (generalize sumFold) stream
+      sleep 0.1
+      val <- atomically $ readTVar var
+      val `shouldBe` 6
 
 currentEventValueSpec :: Spec
 currentEventValueSpec = describe "currentEventValue" $ do

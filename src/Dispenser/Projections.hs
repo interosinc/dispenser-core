@@ -1,18 +1,26 @@
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 module Dispenser.Projections
      ( currentEventValue
      , currentEventValueM
      , currentValue
      , currentValueM
+     , L.generalize
      , project
      , projectM
+     , projectMTVar
      ) where
 
 import           Dispenser.Prelude
-import qualified Streaming.Prelude as S
+import qualified Streaming.Prelude           as S
 
-import qualified Control.Foldl     as L
+import           Control.Monad.Trans.Control               ( liftBaseDiscard )
+import           Control.Concurrent.STM.TVar      ( TVar, writeTVar
+                                                  , newTVarIO
+                                                  )
+import qualified Control.Foldl               as L
 import           Dispenser.Types
 import           Streaming
 
@@ -21,6 +29,21 @@ project (Fold f z ex) = S.scan f z ex
 
 projectM :: Monad m => FoldM m a b -> Stream (Of a) m r -> Stream (Of b) m r
 projectM (FoldM f z ex) = S.scanM f z ex
+
+projectMTVar :: forall m a b r. (MonadBaseControl IO m, MonadIO m)
+             => FoldM m a b -> Stream (Of a) m r -> m (TVar b)
+projectMTVar f@(FoldM _ z ex) stream = do
+  var <- liftIO . newTVarIO =<< ex =<< z
+  -- TODO: something better than just forkIO? (at least report crashes?)
+  void . liftBaseDiscard forkIO . void . S.effects . projectM (wrap' var f) $ stream
+  return var
+  where
+    wrap' var (FoldM mf mz mex) = FoldM mf mz mex'
+      where
+        mex' = (g =<<) . mex
+        g b = do
+          liftIO . atomically $ writeTVar var b
+          return b
 
 currentValue :: Monad m
              => Fold a b -> Stream (Of a) m r -> m b
