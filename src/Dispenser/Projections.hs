@@ -1,4 +1,5 @@
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
@@ -16,11 +17,12 @@ module Dispenser.Projections
 import           Dispenser.Prelude
 import qualified Streaming.Prelude           as S
 
-import           Control.Monad.Trans.Control               ( liftBaseDiscard )
-import           Control.Concurrent.STM.TVar      ( TVar, writeTVar
+import           Control.Concurrent.STM.TVar      ( TVar
                                                   , newTVarIO
+                                                  , writeTVar
                                                   )
 import qualified Control.Foldl               as L
+import           Control.Monad.Trans.Control      ( liftBaseDiscard )
 import           Dispenser.Types
 import           Streaming
 
