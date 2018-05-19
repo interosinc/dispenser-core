@@ -77,6 +77,7 @@ class CanAppendEvents conn e where
 class CanCurrentEventNumber conn e where
   currentEventNumber :: MonadResource m => conn e -> m EventNumber
 
+
 class CanFromEventNumber conn e where
   fromEventNumber :: ( EventData e
                      , MonadResource m
@@ -89,7 +90,7 @@ class CanFromNow conn e where
              )
           => conn e -> BatchSize -> m (Stream (Of (Event e)) m r)
 
--- TODO: Should we really separate fromNow and continueFrom or should fromNow
+-- TODO: Should we really separate fromNow and fromEventNumber or should fromNow
 --       be the only primitive for this stuff?  If we went that route we should
 --       be able to express continueFrom in terms of canRangeStream +
 --       continueFromNow generically, which is what our original Catchup
@@ -102,18 +103,14 @@ class CanFromNow conn e where
 --       little code as possible
 genericFromNow :: forall conn e m r.
                   ( CanCurrentEventNumber conn e
-                  , CanContinueFrom conn e
+                  , CanFromEventNumber conn e
+                  , EventData e
                   , MonadResource m
                   )
                => conn e -> BatchSize -> m (Stream (Of (Event e)) m r)
 genericFromNow conn batchSize = do
   en <- succ <$> currentEventNumber conn
-  continueFrom conn batchSize en
-
-class CanContinueFrom conn e where
-  continueFrom :: MonadResource m
-               => conn e -> BatchSize -> EventNumber
-               -> m (Stream (Of (Event e)) m r)
+  fromEventNumber conn batchSize en
 
 currentStream :: ( EventData e
                  , CanCurrentEventNumber conn e
