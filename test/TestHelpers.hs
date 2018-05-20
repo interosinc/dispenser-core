@@ -10,6 +10,7 @@ import           Dispenser.Prelude
 import           Data.Text                         ( pack )
 import           Dispenser.Client.Memory
 import qualified Dispenser.Client.Memory as Client
+import           Dispenser.Functions               ( postEvent )
 import           Dispenser.Types
 import           System.Random                     ( randomRIO )
 

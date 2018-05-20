@@ -21,10 +21,10 @@ library
                        -Wincomplete-uni-patterns
                        -Wredundant-constraints
   exposed-modules:     Dispenser
-                     , Dispenser.Catchup
                      , Dispenser.Client.Memory
                      , Dispenser.Client.Null
                      , Dispenser.Diffs
+                     , Dispenser.Functions
                      , Dispenser.Prelude
                      , Dispenser.Projections
                      , Dispenser.Types

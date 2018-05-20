@@ -10,6 +10,7 @@ module Dispenser.Client.Null
 import Dispenser.Prelude
 
 import Dispenser.Types
+import Dispenser.Functions ( initialEventNumber )
 
 data NullClient a = NullClient
   deriving (Eq, Ord, Read, Show)

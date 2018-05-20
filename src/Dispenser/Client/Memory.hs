@@ -13,6 +13,10 @@ import qualified Streaming.Prelude           as S
 
 import           Control.Concurrent.STM.TVar
 import qualified Data.Map                    as Map
+import           Dispenser.Functions                       ( initialEventNumber
+                                                           , genericFromNow
+                                                           , now
+                                                           )
 import           Dispenser.Types                    hiding ( partitionName )
 import           Streaming
 
@@ -38,7 +42,6 @@ instance CanCurrentEventNumber MemConnection e where
     . join . fmap (fmap (view eventNumber) . head) . Map.lookup (conn ^. partitionName)
     <$> (liftIO . atomically . readTVar $ conn ^. (client . partitions))
 
--- TODO: put streamNames back
 instance CanFromNow MemConnection e where
   fromNow = genericFromNow
 
@@ -47,7 +50,7 @@ instance CanFromEventNumber MemConnection e where
                   => MemConnection e -> BatchSize -> EventNumber
                   -> m (Stream (Of (Event e)) m r)
   fromEventNumber conn batchSize minE = do
-  -- TODO: put streamNames back
+    -- TODO: put streamNames back
     debug $ "MemConnection.fromEventNumber " <> show minE
     events' <- liftIO $ findOrCreateCurrentPartition conn
     -- TODO: non-sleep based solution
