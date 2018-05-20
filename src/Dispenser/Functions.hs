@@ -50,8 +50,9 @@ fromOne :: ( EventData e
            , MonadResource m
            , CanFromEventNumber conn e
            )
-        => conn e -> BatchSize -> m (Stream (Of (Event e)) m r)
-fromOne conn batchSize = fromEventNumber conn batchSize initialEventNumber
+        => conn e -> BatchSize -> [StreamName] -> m (Stream (Of (Event e)) m r)
+fromOne conn batchSize streamNames =
+  fromEventNumber conn batchSize streamNames initialEventNumber
 
 genericFromEventNumber :: forall conn e m r.
                           ( EventData e
@@ -90,7 +91,7 @@ genericFromEventNumber conn batchSize streamNames eventNum = do
 
     catchup en = do
       debug $ "genericFromEventNumber: en=" <> show en
-      join . lift . chaseFrom en =<< (join . lift $ fromNow conn batchSize)
+      join . lift . chaseFrom en =<< (join . lift $ fromNow conn batchSize streamNames)
 
     chaseFrom startNum stream = do
       debug $ "genericFromEventNumber:chaseFrom: startNum="
@@ -116,10 +117,10 @@ genericFromNow :: forall conn e m r.
                   , EventData e
                   , MonadResource m
                   )
-               => conn e -> BatchSize -> m (Stream (Of (Event e)) m r)
-genericFromNow conn batchSize = do
+               => conn e -> BatchSize -> [StreamName] -> m (Stream (Of (Event e)) m r)
+genericFromNow conn batchSize streamNames = do
   en <- succ <$> currentEventNumber conn
-  fromEventNumber conn batchSize en
+  fromEventNumber conn batchSize streamNames en
 
 initialEventNumber :: EventNumber
 initialEventNumber = EventNumber 1

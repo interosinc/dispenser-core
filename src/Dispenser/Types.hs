@@ -71,18 +71,18 @@ class CanAppendEvents conn e where
 class CanCurrentEventNumber conn e where
   currentEventNumber :: MonadResource m => conn e -> m EventNumber
 
-
 class CanFromEventNumber conn e where
   fromEventNumber :: ( EventData e
                      , MonadResource m
                      )
-                  => conn e -> BatchSize -> EventNumber -> m (Stream (Of (Event e)) m r)
+                  => conn e -> BatchSize -> [StreamName] -> EventNumber
+                  -> m (Stream (Of (Event e)) m r)
 
 class CanFromNow conn e where
   fromNow :: ( EventData e
              , MonadResource m
              )
-          => conn e -> BatchSize -> m (Stream (Of (Event e)) m r)
+          => conn e -> BatchSize -> [StreamName] -> m (Stream (Of (Event e)) m r)
 
 class CanRangeStream conn e where
   rangeStream :: ( EventData e
