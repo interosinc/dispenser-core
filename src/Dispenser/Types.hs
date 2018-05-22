@@ -14,15 +14,17 @@ import Dispenser.Prelude
 import Data.Default
 import Streaming
 
-newtype Batch a = Batch { unBatch :: [a] }
+newtype Batch e = Batch { unBatch :: [e] }
   deriving (Applicative, Generic, Eq, Foldable, Functor, Ord, Read, Show)
 
 newtype BatchSize = BatchSize { unBatchSize :: Word }
   deriving (Eq, Generic, Num, Ord, Read, Show)
 
-class PartitionConnection conn a => Client client conn a | client -> conn where
-  connect :: MonadIO m => PartitionName -> client -> m (conn a)
+class PartitionConnection conn e => Client client conn e | client -> conn where
+  connect :: MonadIO m => PartitionName -> client -> m (conn e)
 
+-- TODO: DatabaseURL should probably be in .Server... though maybe just "URL" should
+--       be here?
 newtype DatabaseURL = DatabaseURL { unDatabaseUrl :: Text }
   deriving (Eq, Generic, Ord, Read, Show)
 
@@ -48,7 +50,7 @@ instance EventData ()
 newtype EventNumber = EventNumber { unEventNumber :: Integer }
   deriving (Enum, Eq, Generic, Ord, Read, Show)
 
-newtype NonEmptyBatch a = NonEmptyBatch { unNonEmptyBatch :: NonEmpty a }
+newtype NonEmptyBatch e = NonEmptyBatch { unNonEmptyBatch :: NonEmpty e }
   deriving (Eq, Foldable, Functor, Generic, Ord, Read, Show)
 
 data Partition = Partition
