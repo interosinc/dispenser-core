@@ -106,10 +106,7 @@ newtype PartitionName = PartitionName { unPartitionName :: Text }
   deriving (Eq, Generic, Ord, Read, Show)
 
 newtype Timestamp = Timestamp { unTimestamp :: UTCTime }
-  deriving (Eq, Generic, Ord, Read, Show)
-
-instance FromJSON Timestamp
-instance ToJSON   Timestamp
+  deriving (Eq, FromJSON, Generic, Ord, Read, Show, ToJSON)
 
 makeClassy ''Event
 makeClassy ''Partition
