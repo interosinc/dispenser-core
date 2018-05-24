@@ -37,10 +37,10 @@ library
                      , bytestring
                      , containers
                      , data-default
-                     , focus-prelude
                      , foldl
                      , lens
                      , monad-control
+                     , protolude
                      , random
                      , resourcet
                      , stm
@@ -67,11 +67,11 @@ test-suite dispenser-core-test
                      , containers
                      , data-default
                      , dispenser-core
-                     , focus-prelude
                      , foldl
                      , hspec
                      , lens
                      , monad-control
+                     , protolude
                      , random
                      , resourcet
                      , stm

@@ -2,10 +2,6 @@ resolver: lts-9.21
 
 packages:
 - location: .
-- location:
-    git: git@focus-prelude.github.com:SuperpowersCorp/focus-prelude.git
-    commit: a694a45945752816c798f76bbf1f166a8f59afc9
-  extra-dep: true
 
 extra-deps:
 - protolude-0.2.1

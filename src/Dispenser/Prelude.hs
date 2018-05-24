@@ -4,11 +4,12 @@
 module Dispenser.Prelude
     ( module Exports
     , debug
-    , toggleDebug
+    , putLn
     , sleep
+    , toggleDebug
     ) where
 
-import Focus.Prelude                as Exports
+import Protolude                    as Exports
 
 import Control.Concurrent.STM.TVar             ( TVar
                                                , modifyTVar
@@ -52,6 +53,9 @@ debug :: MonadIO m => Text -> m ()
 debug s = liftIO $
   (atomically . readTVar $ debugState) >>= \enabled ->
     when enabled $ withMVar debugLock $ \() -> putLn $ "DEBUG: " <> s
+
+putLn :: MonadIO m => Text -> m ()
+putLn = putStrLn
 
 toggleDebug :: IO ()
 toggleDebug = atomically $ modifyTVar debugState not
