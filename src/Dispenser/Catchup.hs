@@ -63,6 +63,6 @@ catchup conn batchSize streamNames eventNum = do
         Right (pivotEvent, stream') -> do
           debug "S.next->Right -- uh, missing, etc"
           missingStream <- rangeStream conn batchSize streamNames (startNum, endNum)
-          return $ missingStream >>= const (S.yield pivotEvent) >>= const stream'
+          return $ missingStream >> (S.yield pivotEvent) >> stream'
           where
             endNum = pred $ pivotEvent ^. eventNumber

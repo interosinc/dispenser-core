@@ -33,7 +33,7 @@ newtype ConstTransport s a = ConstTransport { constValue :: a }
 instance Transport (ConstTransport s a) s a where
   subscribe transp sel = do
     next <- subscribe transp sel
-    return (stream >>= const next)
+    return $ stream >> next
     where
       stream :: Monad m => Stream (Of a) m ()
       stream = S.yield (constValue transp)

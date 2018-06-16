@@ -42,6 +42,9 @@ instance CanFromEventNumber MemConnection e where
     en <- succ <$> currentEventNumber conn
     continueFrom conn en
 
+-- TODO: Streams are already monads so these can be written just in terms of
+-- the stream instead of an m of the stream.
+--
 -- TODO: put streamNames back
 continueFrom :: MonadIO m
              => MemConnection a -> EventNumber
@@ -59,7 +62,7 @@ continueFrom conn minE = do
       debug $ "continuing from " <> show (succ $ e ^. eventNumber)
       debug $ "S.cons " <> show (e ^. eventNumber)
 
-      return $ S.yield e >>= (const . join . lift . continueFrom conn $ succ (e ^. eventNumber))
+      return $ S.yield e >> (join . lift . continueFrom conn $ succ (e ^. eventNumber))
   where
     elligible = -- filter (matchesStreams streamNames) .
       dropWhile ((< minE) . view eventNumber)
