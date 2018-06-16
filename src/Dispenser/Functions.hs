@@ -27,7 +27,7 @@ currentStream :: ( EventData e
                  , CanRangeStream conn e
                  , MonadResource m
                  )
-              => conn e -> BatchSize -> [StreamName]
+              => conn e -> BatchSize -> Set StreamName
               -> m (Stream (Of (Event e)) m ())
 currentStream conn batchSize streamNames =
   currentStreamFrom conn batchSize streamNames (EventNumber 0)
@@ -37,7 +37,7 @@ currentStreamFrom :: ( EventData e
                      , CanRangeStream conn e
                      , MonadResource m
                      )
-                  => conn e -> BatchSize -> [StreamName] -> EventNumber
+                  => conn e -> BatchSize -> Set StreamName -> EventNumber
                   -> m (Stream (Of (Event e)) m ())
 currentStreamFrom conn batchSize streamNames minE = do
   maxE <- currentEventNumber conn
@@ -50,7 +50,7 @@ fromOne :: ( EventData e
            , MonadResource m
            , CanFromEventNumber conn e
            )
-        => conn e -> BatchSize -> [StreamName] -> m (Stream (Of (Event e)) m r)
+        => conn e -> BatchSize -> Set StreamName -> m (Stream (Of (Event e)) m r)
 fromOne conn batchSize streamNames =
   fromEventNumber conn batchSize streamNames initialEventNumber
 
@@ -61,7 +61,7 @@ genericFromEventNumber :: forall conn e m r.
                           , CanRangeStream conn e
                           , MonadResource m
                           )
-                       => conn e -> BatchSize ->  [StreamName] -> EventNumber
+                       => conn e -> BatchSize ->  Set StreamName -> EventNumber
                        -> m (Stream (Of (Event e)) m r)
 genericFromEventNumber conn batchSize streamNames eventNum = do
   debug $ "genericFromEventNumber: eventNum = " <> show eventNum
@@ -117,10 +117,9 @@ genericFromNow :: forall conn e m r.
                   , EventData e
                   , MonadResource m
                   )
-               => conn e -> BatchSize -> [StreamName] -> m (Stream (Of (Event e)) m r)
-genericFromNow conn batchSize streamNames = do
-  en <- succ <$> currentEventNumber conn
-  fromEventNumber conn batchSize streamNames en
+               => conn e -> BatchSize -> Set StreamName -> m (Stream (Of (Event e)) m r)
+genericFromNow conn batchSize streamNames =
+  fromEventNumber conn batchSize streamNames =<< succ <$> currentEventNumber conn
 
 initialEventNumber :: EventNumber
 initialEventNumber = EventNumber 1
@@ -128,9 +127,6 @@ initialEventNumber = EventNumber 1
 now :: IO Timestamp
 now = Timestamp <$> getCurrentTime
 
-postEvent :: ( EventData e
-             , CanAppendEvents conn e
-             , MonadResource m
-             )
-          => conn e -> [StreamName] -> e -> m EventNumber
+postEvent :: (EventData e, CanAppendEvents conn e, MonadResource m)
+          => conn e -> Set StreamName -> e -> m EventNumber
 postEvent pc sns e = appendEvents pc sns (NonEmptyBatch $ e :| [])

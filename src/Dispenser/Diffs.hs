@@ -8,7 +8,7 @@ module Dispenser.Diffs
      , makePatch
      , unsafePatched
      , patches
-     )  where
+     ) where
 
 import           Dispenser.Prelude          hiding ( diff )
 import qualified Streaming.Prelude     as S
@@ -22,14 +22,12 @@ import           Dispenser.Projections             ( project
                                                    )
 import           Streaming
 
-unsafePatched :: forall m a r. (Monad m, FromJSON a, ToJSON a)
-              => (a, Stream (Of Patch) m r)
-              -> Stream (Of a) m r
-unsafePatched (z, xs) = project (Fold f z identity) xs
-  where
-    f x p = case applyPatch p x of
-      Success a -> a
-      Error e   -> panic $ "patched ERROR: " <> show e -- TODO: totality
+
+applyPatch :: (FromJSON a, ToJSON a) => Patch -> a -> Result a
+applyPatch p = join . (fromJSON <$>) . patch p . toJSON
+
+makePatch :: ToJSON a => a -> a -> Patch
+makePatch a b = diff (toJSON a) (toJSON b)
 
 -- TODO: needs to return either r or (z, Stream ...) ? so we can have have
 --       access to the zero value if it exists, to a) provide it to the user
@@ -46,8 +44,11 @@ patches xs = S.next xs >>= \case
     ex :: (a, a) -> m Patch
     ex = return . uncurry makePatch
 
-makePatch :: ToJSON a => a -> a -> Patch
-makePatch a b = diff (toJSON a) (toJSON b)
-
-applyPatch :: (FromJSON a, ToJSON a) => Patch -> a -> Result a
-applyPatch p = join . (fromJSON <$>) . patch p . toJSON
+unsafePatched :: forall m a r. (Monad m, FromJSON a, ToJSON a)
+              => (a, Stream (Of Patch) m r)
+              -> Stream (Of a) m r
+unsafePatched (z, xs) = project (Fold f z identity) xs
+  where
+    f x p = case applyPatch p x of
+      Success a -> a
+      Error   e -> panic $ "patched ERROR: " <> show e -- TODO: totality "finish it!"

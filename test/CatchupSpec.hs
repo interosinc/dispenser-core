@@ -88,7 +88,7 @@ spec = describe "catchup" $
 --   let start' = min currentMaxEventNumber' start
 --       end    = max currentMaxEventNumber' (EventNumber $ s + fromIntegral bs)
 --   let existing = S.each (map makeTestEvent [start'..end])
---   return $ existing >>= const nevermore
+--   return $ existing >> nevermore
 --   where
 --     nevermore :: MonadIO m => Stream (Of (Event TestInt)) m r
 --     nevermore = forever . sleep $ 1000

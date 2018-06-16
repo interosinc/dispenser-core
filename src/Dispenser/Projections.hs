@@ -26,6 +26,28 @@ import           Control.Monad.Trans.Control      ( liftBaseDiscard )
 import           Dispenser.Types
 import           Streaming
 
+currentValue :: Monad m => Fold a b -> Stream (Of a) m r -> m b
+currentValue f stream = do
+  x :> _ <- L.purely S.fold f stream
+  return x
+
+currentValueM :: Monad m => FoldM m a b -> Stream (Of a) m r -> m b
+currentValueM f stream = do
+  x :> _ <- L.impurely S.foldM f stream
+  return x
+
+currentEventValue :: Monad m => Fold a b -> Stream (Of (Event a)) m r -> m b
+currentEventValue f inStream = do
+  let stream = S.map (view eventData) inStream
+  x :> _ <- L.purely S.fold f stream
+  return x
+
+currentEventValueM :: Monad m => FoldM m a b -> Stream (Of (Event a)) m r -> m b
+currentEventValueM f inStream = do
+  let stream = S.map (view eventData) inStream
+  x :> _ <- L.impurely S.foldM f stream
+  return x
+
 project :: Monad m => Fold a b -> Stream (Of a) m r -> Stream (Of b) m r
 project (Fold f z ex) = S.scan f z ex
 
@@ -49,29 +71,3 @@ projectMTVar f@(FoldM _ z ex) stream = do
         g b = do
           liftIO . atomically $ writeTVar var b
           return b
-
-currentValue :: Monad m
-             => Fold a b -> Stream (Of a) m r -> m b
-currentValue f stream = do
-  x :> _ <- L.purely S.fold f stream
-  return x
-
-currentValueM :: Monad m
-              => FoldM m a b -> Stream (Of a) m r -> m b
-currentValueM f stream = do
-  x :> _ <- L.impurely S.foldM f stream
-  return x
-
-currentEventValue :: Monad m
-             => Fold a b -> Stream (Of (Event a)) m r -> m b
-currentEventValue f inStream = do
-  let stream = S.map (view eventData) inStream
-  x :> _ <- L.purely S.fold f stream
-  return x
-
-currentEventValueM :: Monad m
-              => FoldM m a b -> Stream (Of (Event a)) m r -> m b
-currentEventValueM f inStream = do
-  let stream = S.map (view eventData) inStream
-  x :> _ <- L.impurely S.foldM f stream
-  return x
