@@ -9,6 +9,7 @@ import           Dispenser.Prelude
 import qualified Streaming.Prelude           as S
 
 import           Control.Concurrent.STM.TVar
+import qualified Data.Set                    as Set
 import           Dispenser.Projections
 import           Dispenser.Types
 import           Streaming
@@ -122,7 +123,7 @@ currentEventValueMSpec = describe "currentEventValueM" $ do
       val `shouldBe` 16
 
 testEvent :: Int -> Event Int
-testEvent n = Event (EventNumber . fromIntegral $ n) [] n ts
+testEvent n = Event (EventNumber . fromIntegral $ n) Set.empty n ts
   where
     ts = panic "unused"
 
