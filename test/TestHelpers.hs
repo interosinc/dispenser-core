@@ -20,6 +20,9 @@ instance FromJSON  TestInt
 instance ToJSON    TestInt
 instance EventData TestInt
 
+instance OccuredAt TestInt where
+  occuredAt = const UseSubmittedAt
+
 createTestPartition :: IO (MemConnection TestInt)
 createTestPartition = do
   client' :: MemClient TestInt <- liftIO Client.new

@@ -40,10 +40,11 @@ data Event e = Event
   } deriving (Eq, Functor, Generic, Ord, Read, Show)
 
 -- TODO: Show a is probably too strong, but for now I'm leaving it.
-class ( FromJSON e
-      , Generic  e
-      , Show     e
-      , ToJSON   e
+class ( FromJSON     e
+      , Generic      e
+      , OccuredAt    e
+      , Show         e
+      , ToJSON       e
       ) => EventData e
 
 newtype EventNumber = EventNumber { unEventNumber :: Integer }
@@ -55,16 +56,25 @@ eventNumberDelta (EventNumber n) (EventNumber m) = abs $ fromIntegral n - fromIn
 newtype NonEmptyBatch a = NonEmptyBatch { unNonEmptyBatch :: NonEmpty a }
   deriving (Eq, Foldable, Functor, Generic, Ord, Read, Show)
 
+data Occured
+  = UseSubmittedAt
+  | UseRecordedAt
+  | UseUtc UTCTime
+  deriving (Eq, Generic, Ord, Read, Show)
+
+class OccuredAt a where
+  occuredAt :: a -> Occured
+
 data Partition = Partition
   { _dbUrl         :: DatabaseURL
   , _partitionName :: PartitionName
   } deriving (Eq, Generic, Ord, Read, Show)
 
-class ( CanAppendEvents conn e
-      , CanCurrentEventNumber conn e
-      , CanFromEventNumber conn e
-      , CanRangeStream conn e
-      ) => PartitionConnection conn e
+class ( CanAppendEvents         conn e
+      , CanCurrentEventNumber   conn e
+      , CanFromEventNumber      conn e
+      , CanRangeStream          conn e
+      ) => PartitionConnection  conn e
 
 class CanAppendEvents conn e where
   appendEvents :: ( EventData e
@@ -160,3 +170,4 @@ fromOne :: ( EventData e
            )
         => conn e -> BatchSize -> m (Stream (Of (Event e)) m r)
 fromOne conn batchSize = fromEventNumber conn batchSize initialEventNumber
+
