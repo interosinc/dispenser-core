@@ -54,8 +54,7 @@ test-suite dispenser-core-test
   type:                exitcode-stdio-1.0
   hs-source-dirs:      test
   main-is:             Spec.hs
-  other-modules:       CatchupSpec
-                     , DiffsSpec
+  other-modules:       DiffsSpec
                      , MemorySpec
                      , ProjectionSpec
                      , TestHelpers
