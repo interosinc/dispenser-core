@@ -4,11 +4,18 @@
 module Dispenser.Prelude
     ( module Exports
     , debug
+    , putLn
     , sleep
+    , toggleDebug
     ) where
 
-import Focus.Prelude                as Exports
+import Protolude                    as Exports
 
+import Control.Concurrent.STM.TVar             ( TVar
+                                               , modifyTVar
+                                               , newTVarIO
+                                               , readTVar
+                                               )
 import Control.Foldl                as Exports ( Fold( Fold )
                                                , FoldM( FoldM )
                                                )
@@ -21,6 +28,7 @@ import Control.Lens                 as Exports ( (^.)
                                                )
 import Control.Monad.Trans.Control  as Exports ( MonadBaseControl )
 import Control.Monad.Trans.Resource as Exports ( runResourceT )
+import Data.Data                    as Exports ( Data )
 import Data.Aeson                   as Exports ( FromJSON
                                                , Result( Error
                                                        , Success
@@ -37,10 +45,21 @@ debugLock :: MVar ()
 debugLock = unsafePerformIO $ newMVar ()
 {-# NOINLINE debugLock #-}
 
+debugState :: TVar Bool
+debugState = unsafePerformIO $ newTVarIO False
+{-# NOINLINE debugState #-}
+
+-- TODO: switch back to an approach that doesn't require a tvar hit on every invocation
 debug :: MonadIO m => Text -> m ()
-debug s = when enabled $ liftIO . withMVar debugLock $ \() -> putLn $ "DEBUG: " <> s
-  where
-    enabled = False
+debug s = liftIO $
+  (atomically . readTVar $ debugState) >>= \enabled ->
+    when enabled $ withMVar debugLock $ \() -> putLn $ "DEBUG: " <> s
+
+putLn :: MonadIO m => Text -> m ()
+putLn = putStrLn
+
+toggleDebug :: IO ()
+toggleDebug = atomically $ modifyTVar debugState not
 
 sleep :: MonadIO m => Float -> m ()
 sleep n = liftIO . threadDelay . round $ n * 1000 * 1000

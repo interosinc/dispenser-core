@@ -9,6 +9,7 @@ import           Dispenser.Prelude
 import qualified Streaming.Prelude           as S
 
 import           Control.Concurrent.STM.TVar
+import qualified Data.Set                    as Set
 import           Dispenser.Projections
 import           Dispenser.Types
 import           Streaming
@@ -21,6 +22,7 @@ spec :: Spec
 spec = do
   projectSpec
   projectMSpec
+  projectMTVarSpec
   currentEventValueSpec
   currentEventValueMSpec
 
@@ -64,6 +66,26 @@ projectMSpec = describe "projectM" $ do
       val <- atomically $ readTVar var
       val `shouldBe` 16
 
+projectMTVarSpec :: Spec
+projectMTVarSpec = describe "projectMTVar" $ do
+
+  context "given an empty stream" $ do
+    let stream  :: Stream (Of Int) IO () = return ()
+
+    it "the TVar contains the zero of the projection" $ do
+      var <- projectMTVar (generalize sumFold) stream
+      val <- atomically $ readTVar var
+      val `shouldBe` 0
+
+  context "given a non-empty stream" $ do
+    let stream = S.each [1..3 :: Int]
+
+    it "should return the correct values of the fold for each event" $ do
+      var <- projectMTVar (generalize sumFold) stream
+      sleep 0.1
+      val <- atomically $ readTVar var
+      val `shouldBe` 6
+
 currentEventValueSpec :: Spec
 currentEventValueSpec = describe "currentEventValue" $ do
 
@@ -101,7 +123,7 @@ currentEventValueMSpec = describe "currentEventValueM" $ do
       val `shouldBe` 16
 
 testEvent :: Int -> Event Int
-testEvent n = Event (EventNumber . fromIntegral $ n) [] n ts
+testEvent n = Event (EventNumber . fromIntegral $ n) Set.empty n ts
   where
     ts = panic "unused"
 

@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveDataTypeable    #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE NoImplicitPrelude     #-}
@@ -18,7 +19,7 @@ import qualified Streaming.Prelude as S
 import           Streaming
 
 newtype Selector s a = Selector { unSelector :: s }
-  deriving (Eq, Ord, Read, Show)
+  deriving (Data, Eq, Ord, Read, Show)
 
 class Transport t s a where
   subscribe :: MonadIO m => t -> Selector s a  -> m (Stream (Of a) m r)

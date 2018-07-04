@@ -10,12 +10,17 @@ clean:
 dist-clean:
 	\rm -rf .stack-work
 
+ghcid:
+	stack exec -- ghcid -c 'stack ghci' --restart stack.yaml
+
 hlint:
 	stack exec hlint .
 
 longboye-all:
 	longboye imports src
 	longboye imports test
+	longboye pragmas src
+	longboye pragmas test
 
 setup:
 	stack setup

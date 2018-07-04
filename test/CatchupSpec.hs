@@ -1,5 +1,5 @@
 -- {-# LANGUAGE DeriveGeneric       #-}
-{-# LANGUAGE NoImplicitPrelude   #-}
+{-# LANGUAGE NoImplicitPrelude #-}
 -- {-# LANGUAGE OverloadedStrings   #-}
 -- {-# LANGUAGE RecordWildCards     #-}
 -- {-# LANGUAGE ScopedTypeVariables #-}
@@ -7,6 +7,7 @@
 module CatchupSpec where
 
 import Dispenser.Prelude
+
 import Test.Hspec
 
 main :: IO ()

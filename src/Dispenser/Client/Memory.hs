@@ -1,5 +1,6 @@
 {-# LANGUAGE FlexibleInstances      #-}
 {-# LANGUAGE FunctionalDependencies #-}
+{-# LANGUAGE InstanceSigs           #-}
 {-# LANGUAGE LambdaCase             #-}
 {-# LANGUAGE NoImplicitPrelude      #-}
 {-# LANGUAGE OverloadedStrings      #-}
@@ -12,6 +13,10 @@ import qualified Streaming.Prelude           as S
 
 import           Control.Concurrent.STM.TVar
 import qualified Data.Map                    as Map
+import           Dispenser.Functions                       ( initialEventNumber
+                                                           , genericFromNow
+                                                           , now
+                                                           )
 import           Dispenser.Types                    hiding ( partitionName )
 import           Streaming
 
@@ -33,42 +38,45 @@ new = MemClient <$> newTVarIO Map.empty
 instance EventData e => PartitionConnection MemConnection e
 
 instance CanCurrentEventNumber MemConnection e where
-  currentEventNumber conn = fromMaybe initialEventNumber
+  currentEventNumber conn = fromMaybe (pred initialEventNumber)
     . join . fmap (fmap (view eventNumber) . head) . Map.lookup (conn ^. partitionName)
     <$> (liftIO . atomically . readTVar $ conn ^. (client . partitions))
 
+instance CanFromNow MemConnection e where
+  fromNow = genericFromNow
+
 instance CanFromEventNumber MemConnection e where
-  fromEventNumber conn _batchSize _eventNum = do
-    en <- succ <$> currentEventNumber conn
-    continueFrom conn en
+  fromEventNumber conn _batchSize streamNames eventNum =
+    continueFrom conn streamNames eventNum
 
 -- TODO: Streams are already monads so these can be written just in terms of
 -- the stream instead of an m of the stream.
 --
--- TODO: put streamNames back
+-- TODO: actually filter by streamNames
 continueFrom :: MonadIO m
-             => MemConnection a -> EventNumber
+             => MemConnection a
+             -> Set StreamName
+             -> EventNumber
              -> m (Stream (Of (Event a)) m r)
-continueFrom conn minE = do
+continueFrom conn streamNames minE = do
   debug $ "continueFrom " <> show minE
   events' <- liftIO $ findOrCreateCurrentPartition conn
   -- TODO: non-sleep based solution
   case elligible events' of
     []    -> do
       debug $ "no elligible events -- sleep 0.25 and continue from " <> show minE
-      sleep 0.25 >> continueFrom conn minE
+      sleep 0.25 >> continueFrom conn streamNames minE
     (e:_) -> do
       debug $ "elligible event " <> show (e ^. eventNumber)
       debug $ "continuing from " <> show (succ $ e ^. eventNumber)
       debug $ "S.cons " <> show (e ^. eventNumber)
 
-      return $ S.yield e >> (join . lift . continueFrom conn $ succ (e ^. eventNumber))
+      return $ S.yield e >> (join . lift . continueFrom conn streamNames $ succ (e ^. eventNumber))
   where
-    elligible = -- filter (matchesStreams streamNames) .
-      dropWhile ((< minE) . view eventNumber)
+    elligible = filter matchesStreams . dropWhile ((< minE) . view eventNumber)
 
-    -- matchesStreams :: [StreamName] -> Event a -> Bool
-    -- matchesStreams _ _ = True  -- TODO
+    matchesStreams :: Event a -> Bool
+    matchesStreams _ = True  -- TODO
 
 instance EventData e => Client (MemClient e) MemConnection e where
   connect partName client' = return $ MemConnection client' partName
@@ -100,7 +108,8 @@ instance EventData e => CanRangeStream MemConnection e where
       <$> liftIO (findOrCreateCurrentPartition conn)
 
 findOrCreateCurrentPartition :: MemConnection a -> IO [Event a]
-findOrCreateCurrentPartition conn = fromMaybe [] . Map.lookup (conn ^. partitionName)
+findOrCreateCurrentPartition conn = reverse . fromMaybe []
+  . Map.lookup (conn ^. partitionName)
   <$> (atomically . readTVar $ conn ^. (client . partitions))
 
 modifyPartition :: MemConnection a ->  ([Event a] -> [Event a]) -> IO ()

@@ -21,26 +21,26 @@ library
                        -Wincomplete-uni-patterns
                        -Wredundant-constraints
   exposed-modules:     Dispenser
-                     , Dispenser.Catchup
                      , Dispenser.Client.Memory
                      , Dispenser.Client.Null
                      , Dispenser.Diffs
+                     , Dispenser.Functions
                      , Dispenser.Prelude
                      , Dispenser.Projections
                      , Dispenser.Types
                      -- in development
-                     , Dispenser.Transport
-                     , Dispenser.TransportExample
+                     -- , Dispenser.Transport
+                     -- , Dispenser.TransportExample
   build-depends:       aeson
                      , aeson-diff
                      , base  >= 4.7 && < 5
                      , bytestring
                      , containers
                      , data-default
-                     , focus-prelude
                      , foldl
                      , lens
                      , monad-control
+                     , protolude
                      , random
                      , resourcet
                      , stm
@@ -67,11 +67,11 @@ test-suite dispenser-core-test
                      , containers
                      , data-default
                      , dispenser-core
-                     , focus-prelude
                      , foldl
                      , hspec
                      , lens
                      , monad-control
+                     , protolude
                      , random
                      , resourcet
                      , stm

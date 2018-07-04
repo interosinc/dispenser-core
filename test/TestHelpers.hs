@@ -1,15 +1,19 @@
+{-# LANGUAGE DeriveDataTypeable  #-}
 {-# LANGUAGE DeriveGeneric       #-}
 {-# LANGUAGE NoImplicitPrelude   #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE StandaloneDeriving  #-}
 
 module TestHelpers where
 
 import           Dispenser.Prelude
 
+import           Data.Set                          ( fromList )
 import           Data.Text                         ( pack )
 import           Dispenser.Client.Memory
 import qualified Dispenser.Client.Memory as Client
+import           Dispenser.Functions               ( postEvent )
 import           Dispenser.Types
 import           System.Random                     ( randomRIO )
 
@@ -19,6 +23,8 @@ newtype TestInt = TestInt { unTestInt :: Int }
 instance FromJSON  TestInt
 instance ToJSON    TestInt
 instance EventData TestInt
+
+deriving instance Data TestInt
 
 instance OccuredAt TestInt where
   occuredAt = const UseSubmittedAt
@@ -38,7 +44,7 @@ createTestPartition = do
 postTestEvent :: MemConnection TestInt -> Int -> IO ()
 postTestEvent conn = void
   . runResourceT
-  . postEvent conn [StreamName "test"]
+  . postEvent conn (fromList [StreamName "test"])
   . TestInt
 
 testSleep :: IO ()
