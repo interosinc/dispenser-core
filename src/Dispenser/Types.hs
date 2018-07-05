@@ -36,37 +36,24 @@ data Event e = Event
   { _eventNumber  :: EventNumber
   , _eventStreams :: Set StreamName
   , _eventData    :: e
-  , _createdAt    :: Timestamp
+  , _recordedAt   :: Timestamp
   } deriving (Data, Eq, Functor, Generic, Ord, Read, Show)
 
 -- TODO: Show a is probably too strong, but for now I'm leaving it.
 class ( Data         e
       , FromJSON     e
       , Generic      e
-      , OccuredAt    e
       , Show         e
       , ToJSON       e
       ) => EventData e
 
 instance EventData ()
 
-instance OccuredAt () where
-  occuredAt () = UseSubmittedAt
-
 newtype EventNumber = EventNumber { unEventNumber :: Integer }
   deriving (Data, Enum, Eq, Generic, Ord, Read, Show)
 
 newtype NonEmptyBatch e = NonEmptyBatch { unNonEmptyBatch :: NonEmpty e }
   deriving (Data, Eq, Foldable, Functor, Generic, Ord, Read, Show)
-
-data Occured
-  = UseSubmittedAt
-  | UseRecordedAt
-  | UseUtc UTCTime
-  deriving (Eq, Generic, Ord, Read, Show)
-
-class OccuredAt a where
-  occuredAt :: a -> Occured
 
 data Partition = Partition
   { _dbUrl         :: DatabaseURL

@@ -26,9 +26,6 @@ instance EventData TestInt
 
 deriving instance Data TestInt
 
-instance OccuredAt TestInt where
-  occuredAt = const UseSubmittedAt
-
 createTestPartition :: IO (MemConnection TestInt)
 createTestPartition = do
   client' :: MemClient TestInt <- liftIO Client.new
