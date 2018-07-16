@@ -61,6 +61,7 @@ test-suite dispenser-core-test
                      , MemorySpec
                      , ProjectionSpec
                      , TestHelpers
+                     , TypesSpec
   build-depends:       QuickCheck
                      , aeson
                      , aeson-diff
