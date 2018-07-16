@@ -78,16 +78,17 @@ class CanCurrentEventNumber conn e where
 
 class CanFromEventNumber conn e where
   fromEventNumber :: ( EventData e, MonadResource m )
-                  => conn e -> BatchSize -> Set StreamName -> EventNumber
+                  => conn e -> BatchSize -> StreamSource -> EventNumber
                   -> m (Stream (Of (Event e)) m r)
 
 class CanFromNow conn e where
   fromNow :: ( EventData e, MonadResource m )
-          => conn e -> BatchSize -> Set StreamName -> m (Stream (Of (Event e)) m r)
+          => conn e -> BatchSize -> StreamSource
+          -> m (Stream (Of (Event e)) m r)
 
 class CanRangeStream conn e where
   rangeStream :: ( EventData e, MonadResource m )
-              => conn e -> BatchSize -> Set StreamName -> (EventNumber, EventNumber)
+              => conn e -> BatchSize -> StreamSource -> (EventNumber, EventNumber)
               -> m (Stream (Of (Event e)) m ())
 
 newtype PoolSize = PoolSize { unPoolSize :: Word }
@@ -124,6 +125,7 @@ newtype Timestamp = Timestamp { unTimestamp :: UTCTime }
 
 makeClassy ''Event
 makeClassy ''Partition
+makeClassy ''StreamSource
 
 instance Arbitrary StreamName where
   shrink    = genericShrink
