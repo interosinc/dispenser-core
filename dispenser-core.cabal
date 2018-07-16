@@ -82,6 +82,7 @@ test-suite dispenser-core-test
                      , text
                      , time
                      , unordered-containers
+                     , zero
   ghc-options:         -Wall -threaded -rtsopts -with-rtsopts=-N
   default-language:    Haskell2010
 
