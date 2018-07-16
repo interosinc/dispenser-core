@@ -31,7 +31,8 @@ library
                      -- in development
                      -- , Dispenser.Transport
                      -- , Dispenser.TransportExample
-  build-depends:       aeson
+  build-depends:       QuickCheck
+                     , aeson
                      , aeson-diff
                      , base  >= 4.7 && < 5
                      , bytestring
@@ -41,6 +42,7 @@ library
                      , lens
                      , monad-control
                      , protolude
+                     , quickcheck-text
                      , random
                      , resourcet
                      , stm
@@ -48,6 +50,7 @@ library
                      , text
                      , time
                      , unordered-containers
+                     , zero
   default-language:    Haskell2010
 
 test-suite dispenser-core-test
@@ -71,6 +74,7 @@ test-suite dispenser-core-test
                      , lens
                      , monad-control
                      , protolude
+                     , quickcheck-text
                      , random
                      , resourcet
                      , stm

@@ -9,7 +9,7 @@ module Dispenser.Prelude
     , toggleDebug
     ) where
 
-import Protolude                    as Exports
+import Protolude                    as Exports hiding ( zero )
 
 import Control.Concurrent.STM.TVar             ( TVar
                                                , modifyTVar
@@ -39,8 +39,10 @@ import Data.Aeson                   as Exports ( FromJSON
                                                , toJSON
                                                )
 import Data.Time.Clock              as Exports ( UTCTime )
+import Data.Zero                    as Exports ( Zero
+                                               , zero
+                                               )
 import System.IO.Unsafe                        ( unsafePerformIO )
-
 debugLock :: MVar ()
 debugLock = unsafePerformIO $ newMVar ()
 {-# NOINLINE debugLock #-}

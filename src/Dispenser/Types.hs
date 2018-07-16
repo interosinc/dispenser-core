@@ -13,7 +13,10 @@ module Dispenser.Types where
 import Dispenser.Prelude
 
 import Data.Default
+import qualified Data.Semigroup as Semi
 import Streaming
+import Test.QuickCheck
+import Data.Text.Arbitrary()
 
 newtype Batch e = Batch { unBatch :: [e] }
   deriving (Data, Applicative, Generic, Eq, Foldable, Functor, Ord, Read, Show)
@@ -96,8 +99,22 @@ newtype ProjectionName = ProjectionName { unProjectionName :: Text }
 newtype StreamName = StreamName { unStreamName :: Text }
   deriving (Data, Eq, Generic, Ord, Read, Show)
 
--- TODO: These seems questionable but feels so good... ?
-type StreamSet = Set StreamName
+data StreamSource
+  = AllStreams
+  | SomeStreams (Set StreamName)
+  deriving (Data, Eq, Generic, Ord, Read, Show)
+
+instance Semigroup StreamSource where
+  SomeStreams a <> SomeStreams b = SomeStreams (a <> b)
+  AllStreams    <> _             = AllStreams
+  _             <> AllStreams    = AllStreams
+
+instance Monoid StreamSource where
+  mempty  = SomeStreams mempty
+  mappend = (Semi.<>)
+
+instance Zero StreamSource where
+  zero = AllStreams
 
 newtype PartitionName = PartitionName { unPartitionName :: Text }
   deriving (Data, Eq, Generic, Ord, Read, Show)
@@ -107,3 +124,16 @@ newtype Timestamp = Timestamp { unTimestamp :: UTCTime }
 
 makeClassy ''Event
 makeClassy ''Partition
+
+instance Arbitrary StreamName where
+  shrink    = genericShrink
+  arbitrary = StreamName <$> arbitrary
+
+instance Arbitrary StreamSource where
+  shrink    = genericShrink
+  arbitrary = frequency
+    [ (1, pure AllStreams)
+    , (1, pure zero)
+    , (1, pure $ SomeStreams mempty)
+    , (7, SomeStreams <$> arbitrary)
+    ]
