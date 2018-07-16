@@ -27,21 +27,21 @@ currentStream :: ( EventData e
                  , CanRangeStream conn e
                  , MonadResource m
                  )
-              => conn e -> BatchSize -> Set StreamName
+              => conn e -> BatchSize -> StreamSource
               -> m (Stream (Of (Event e)) m ())
-currentStream conn batchSize streamNames =
-  currentStreamFrom conn batchSize streamNames (EventNumber 0)
+currentStream conn batchSize source =
+  currentStreamFrom conn batchSize source (EventNumber 0)
 
 currentStreamFrom :: ( EventData e
                      , CanCurrentEventNumber conn e
                      , CanRangeStream conn e
                      , MonadResource m
                      )
-                  => conn e -> BatchSize -> Set StreamName -> EventNumber
+                  => conn e -> BatchSize -> StreamSource -> EventNumber
                   -> m (Stream (Of (Event e)) m ())
-currentStreamFrom conn batchSize streamNames minE = do
+currentStreamFrom conn batchSize source minE = do
   maxE <- currentEventNumber conn
-  rangeStream conn batchSize streamNames (minE, maxE)
+  rangeStream conn batchSize source (minE, maxE)
 
 eventNumberDelta :: EventNumber -> EventNumber -> Integer
 eventNumberDelta (EventNumber n) (EventNumber m) = abs $ fromIntegral n - fromIntegral m
@@ -50,9 +50,9 @@ fromOne :: ( EventData e
            , MonadResource m
            , CanFromEventNumber conn e
            )
-        => conn e -> BatchSize -> Set StreamName -> m (Stream (Of (Event e)) m r)
-fromOne conn batchSize streamNames =
-  fromEventNumber conn batchSize streamNames initialEventNumber
+        => conn e -> BatchSize -> StreamSource -> m (Stream (Of (Event e)) m r)
+fromOne conn batchSize source =
+  fromEventNumber conn batchSize source initialEventNumber
 
 genericFromEventNumber :: forall conn e m r.
                           ( EventData e
@@ -61,11 +61,11 @@ genericFromEventNumber :: forall conn e m r.
                           , CanRangeStream conn e
                           , MonadResource m
                           )
-                       => conn e -> BatchSize ->  Set StreamName -> EventNumber
+                       => conn e -> BatchSize ->  StreamSource -> EventNumber
                        -> m (Stream (Of (Event e)) m r)
-genericFromEventNumber conn batchSize streamNames eventNum = do
+genericFromEventNumber conn batchSize source eventNum = do
   debug $ "genericFromEventNumber: eventNum = " <> show eventNum
-  clstream <- S.store S.last <$> currentStreamFrom conn batchSize streamNames eventNum
+  clstream <- S.store S.last <$> currentStreamFrom conn batchSize source eventNum
   debug "genericFromEventNumber: returning clstream with continuation"
   return $ clstream >>= \case
     Nothing :> _ -> do
@@ -82,7 +82,7 @@ genericFromEventNumber conn batchSize streamNames eventNum = do
       if eventNumberDelta currentEventNum lastEventNum > maxHandOffDelta
         then do
           debug $ "delta greater: fromEventNumber, nextEventNum=" <> show nextEventNum
-          join . lift $ genericFromEventNumber conn batchSize streamNames nextEventNum
+          join . lift $ genericFromEventNumber conn batchSize source nextEventNum
         else do
           debug $ "delta not greater: catchup, nextEventNum=" <> show nextEventNum
           catchup nextEventNum
@@ -91,7 +91,7 @@ genericFromEventNumber conn batchSize streamNames eventNum = do
 
     catchup en = do
       debug $ "genericFromEventNumber: en=" <> show en
-      join . lift . chaseFrom en =<< (join . lift $ fromNow conn batchSize streamNames)
+      join . lift . chaseFrom en =<< (join . lift $ fromNow conn batchSize source)
 
     chaseFrom startNum stream = do
       debug $ "genericFromEventNumber:chaseFrom: startNum="
@@ -102,7 +102,7 @@ genericFromEventNumber conn batchSize streamNames eventNum = do
           return stream
         Right (pivotEvent, stream') -> do
           debug "genericFromEventNumber: S.next->Right -- uh, missing, etc"
-          missingStream <- rangeStream conn batchSize streamNames (startNum, endNum)
+          missingStream <- rangeStream conn batchSize source (startNum, endNum)
           return $ missingStream >>= const (S.yield pivotEvent) >>= const stream'
           where
             endNum = pred $ pivotEvent ^. eventNumber
@@ -117,9 +117,9 @@ genericFromNow :: forall conn e m r.
                   , EventData e
                   , MonadResource m
                   )
-               => conn e -> BatchSize -> Set StreamName -> m (Stream (Of (Event e)) m r)
-genericFromNow conn batchSize streamNames =
-  fromEventNumber conn batchSize streamNames =<< succ <$> currentEventNumber conn
+               => conn e -> BatchSize -> StreamSource -> m (Stream (Of (Event e)) m r)
+genericFromNow conn batchSize source =
+  fromEventNumber conn batchSize source =<< succ <$> currentEventNumber conn
 
 initialEventNumber :: EventNumber
 initialEventNumber = EventNumber 1

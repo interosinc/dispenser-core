@@ -46,8 +46,7 @@ instance CanFromNow MemConnection e where
   fromNow = genericFromNow
 
 instance CanFromEventNumber MemConnection e where
-  fromEventNumber conn _batchSize streamNames eventNum =
-    continueFrom conn streamNames eventNum
+  fromEventNumber conn _batchSize source eventNum = continueFrom conn source eventNum
 
 -- TODO: Streams are already monads so these can be written just in terms of
 -- the stream instead of an m of the stream.
@@ -55,23 +54,24 @@ instance CanFromEventNumber MemConnection e where
 -- TODO: actually filter by streamNames
 continueFrom :: MonadIO m
              => MemConnection a
-             -> Set StreamName
+             -> StreamSource
              -> EventNumber
              -> m (Stream (Of (Event a)) m r)
-continueFrom conn streamNames minE = do
+continueFrom conn source minE = do
   debug $ "continueFrom " <> show minE
   events' <- liftIO $ findOrCreateCurrentPartition conn
   -- TODO: non-sleep based solution
   case elligible events' of
     []    -> do
       debug $ "no elligible events -- sleep 0.25 and continue from " <> show minE
-      sleep 0.25 >> continueFrom conn streamNames minE
+      sleep 0.25 >> continueFrom conn source minE
     (e:_) -> do
       debug $ "elligible event " <> show (e ^. eventNumber)
       debug $ "continuing from " <> show (succ $ e ^. eventNumber)
       debug $ "S.cons " <> show (e ^. eventNumber)
 
-      return $ S.yield e >> (join . lift . continueFrom conn streamNames $ succ (e ^. eventNumber))
+      return $ S.yield e >> (join . lift . continueFrom conn source
+                               $ succ (e ^. eventNumber))
   where
     elligible = filter matchesStreams . dropWhile ((< minE) . view eventNumber)
 

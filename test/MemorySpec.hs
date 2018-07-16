@@ -30,12 +30,12 @@ spec = let batchSizes = [1..10] in
 
       context "given a stream with 3 events in it" $ do
         let testStream = makeTestStream batchSize 3
-            streamNames = testStreamNames
+            source     = testStreamSource
 
         it "should be able to rangeStream 1..3 right away" $ do
           conn <- fst <$> runResourceT testStream
           events <- runResourceT $ do
-            stream <- rangeStream conn batchSize streamNames
+            stream <- rangeStream conn batchSize source
               ( EventNumber 1
               , EventNumber 3
               )
@@ -48,12 +48,12 @@ spec = let batchSizes = [1..10] in
           let numAvail = fromIntegral . unEventNumber $ curEventNum
 
           results1 <- runResourceT $ do
-            events <- fromOne conn batchSize streamNames
+            events <- fromOne conn batchSize source
             S.fst' <$> S.toList (S.map (view eventData) . S.take numAvail $ events)
           results1 `shouldBe` fmap TestInt [1..3]
 
           results2 <- runResourceT $ do
-            events <- fromOne conn batchSize streamNames
+            events <- fromOne conn batchSize source
             S.fst' <$> S.toList (S.map (view eventData) . S.take numAvail $ events)
           results2 `shouldBe` fmap TestInt [1..3]
 
@@ -111,7 +111,7 @@ makeTestStream batchSize n = do
   debug $ "makeTestStream posting " <> show n <> " events..."
   mapM_ (liftIO . postTestEvent conn) [1..n]
   debug $ "makeTestStream returning"
-  (conn,) <$> fromOne conn batchSize testStreamNames
+  (conn,) <$> fromOne conn batchSize testStreamSource
 
-testStreamNames :: Set StreamName
-testStreamNames = fromList [StreamName "MemorySpec"]
+testStreamSource :: StreamSource
+testStreamSource = SomeStreams . fromList. return . StreamName $ "MemorySpec"
