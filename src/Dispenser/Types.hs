@@ -4,19 +4,20 @@
 {-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE FunctionalDependencies     #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE MultiParamTypeClasses      #-}
 {-# LANGUAGE NoImplicitPrelude          #-}
 {-# LANGUAGE OverloadedStrings          #-}
 {-# LANGUAGE TemplateHaskell            #-}
 
 module Dispenser.Types where
 
-import Dispenser.Prelude
+import           Dispenser.Prelude
 
-import Data.Default
-import qualified Data.Semigroup as Semi
-import Streaming
-import Test.QuickCheck
-import Test.QuickCheck.Instances()
+import           Data.Default
+import qualified Data.Semigroup            as Semi
+import           Streaming
+import           Test.QuickCheck
+import           Test.QuickCheck.Instances         ()
 
 newtype Batch e = Batch { unBatch :: [e] }
   deriving (Data, Applicative, Generic, Eq, Foldable, Functor, Ord, Read, Show)

@@ -5,9 +5,9 @@ module TypesSpec where
 
 import Dispenser.Prelude
 
+import Dispenser.Types
 import Test.Hspec
 import Test.QuickCheck
-import Dispenser.Types
 
 spec :: Spec
 spec = describe "StreamSource should respect the" $ do

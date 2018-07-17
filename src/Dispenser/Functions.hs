@@ -1,7 +1,8 @@
-{-# LANGUAGE LambdaCase          #-}
-{-# LANGUAGE NoImplicitPrelude   #-}
-{-# LANGUAGE OverloadedStrings   #-}
-{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE LambdaCase            #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE NoImplicitPrelude     #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE ScopedTypeVariables   #-}
 
 module Dispenser.Functions
      ( currentStream
@@ -15,12 +16,12 @@ module Dispenser.Functions
      , postEvent
      ) where
 
-import Dispenser.Prelude
-
-import Data.Time.Clock
-import Dispenser.Types
-import Streaming
+import           Dispenser.Prelude
 import qualified Streaming.Prelude as S
+
+import           Data.Time.Clock
+import           Dispenser.Types
+import           Streaming
 
 currentStream :: ( EventData e
                  , CanCurrentEventNumber conn e

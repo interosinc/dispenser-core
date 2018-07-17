@@ -13,8 +13,8 @@ import qualified Streaming.Prelude           as S
 
 import           Control.Concurrent.STM.TVar
 import qualified Data.Map                    as Map
-import           Dispenser.Functions                       ( initialEventNumber
-                                                           , genericFromNow
+import           Dispenser.Functions                       ( genericFromNow
+                                                           , initialEventNumber
                                                            , now
                                                            )
 import           Dispenser.Types                    hiding ( partitionName )

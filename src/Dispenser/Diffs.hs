@@ -22,7 +22,6 @@ import           Dispenser.Projections             ( project
                                                    )
 import           Streaming
 
-
 applyPatch :: (FromJSON a, ToJSON a) => Patch -> a -> Result a
 applyPatch p = join . (fromJSON <$>) . patch p . toJSON
 
