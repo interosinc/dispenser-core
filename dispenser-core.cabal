@@ -42,7 +42,7 @@ library
                      , lens
                      , monad-control
                      , protolude
-                     , quickcheck-text
+                     , quickcheck-instances
                      , random
                      , resourcet
                      , stm
@@ -75,7 +75,7 @@ test-suite dispenser-core-test
                      , lens
                      , monad-control
                      , protolude
-                     , quickcheck-text
+                     , quickcheck-instances
                      , random
                      , resourcet
                      , stm

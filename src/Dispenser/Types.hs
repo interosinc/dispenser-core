@@ -16,7 +16,7 @@ import Data.Default
 import qualified Data.Semigroup as Semi
 import Streaming
 import Test.QuickCheck
-import Data.Text.Arbitrary()
+import Test.QuickCheck.Instances()
 
 newtype Batch e = Batch { unBatch :: [e] }
   deriving (Data, Applicative, Generic, Eq, Foldable, Functor, Ord, Read, Show)
