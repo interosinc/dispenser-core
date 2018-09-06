@@ -3,6 +3,7 @@
 module Dispenser.Sequencer where
 
 import Dispenser.Prelude
+
 import Dispenser.Types
 
 resequence :: (Event a -> [Event b])

@@ -1,66 +1,57 @@
-{-# LANGUAGE FlexibleContexts      #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE NoImplicitPrelude     #-}
-{-# LANGUAGE ScopedTypeVariables   #-}
+{-# LANGUAGE NoImplicitPrelude   #-}
+{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 module Dispenser.Projections
-     ( currentEventValue
-     , currentEventValueM
-     , currentValue
-     , currentValueM
-     , L.generalize
-     , project
-     , projectM
-     , projectMTVar
-     ) where
+  ( Projection(..)
+  , ProjectionM(..)
+  , adhocStream
+  , adhocStreamM
+  , adhocValue
+  , adhocValueM
+  ) where
 
 import           Dispenser.Prelude
-import qualified Streaming.Prelude           as S
+import qualified Streaming.Prelude as S
 
-import           Control.Concurrent.STM.TVar      ( TVar
-                                                  , newTVarIO
-                                                  , writeTVar
-                                                  )
-import qualified Control.Foldl               as L
-import           Control.Monad.Trans.Control      ( liftBaseDiscard )
-import           Dispenser.Types
+import           Control.Foldl          ( Fold )
+import           Dispenser.Folds
 import           Streaming
 
-currentValue :: Monad m => Fold a b -> Stream (Of a) m r -> m b
-currentValue f stream = unOf <$> L.purely S.fold f stream
+data Projection p e s v = Projection
+  { pfold   :: p -> Fold e s
+  , extract :: s -> v
+  }
 
-currentValueM :: Monad m => FoldM m a b -> Stream (Of a) m r -> m b
-currentValueM f stream = unOf <$> L.impurely S.foldM f stream
+data ProjectionM m p e s v = ProjectionM
+  { pfoldM   :: p -> FoldM m e s
+  , extractM :: s -> m v
+  }
 
-currentEventValue :: Monad m => Fold a b -> Stream (Of (Event a)) m r -> m b
-currentEventValue f stream = unOf <$> L.purely S.fold f (S.map (view eventData) stream)
+adhocStream :: forall m p e s v r. Monad m
+            => Projection p e s v
+            -> p
+            -> Stream (Of e) m r
+            -> Stream (Of v) m r
+adhocStream proj p = S.map (extract proj) . project (pfold proj p)
 
-currentEventValueM :: Monad m => FoldM m a b -> Stream (Of (Event a)) m r -> m b
-currentEventValueM f stream = unOf <$> L.impurely S.foldM f (S.map (view eventData) stream)
+adhocValue :: forall m p e s v r. Monad m
+           => Projection p e s v
+           -> p
+           -> Stream (Of e) m r
+           -> m v
+adhocValue proj p es = extract proj <$> currentValue (pfold proj p) es
 
-project :: Monad m => Fold a b -> Stream (Of a) m r -> Stream (Of b) m r
-project (Fold f z ex) = S.scan f z ex
+adhocStreamM :: forall m p e s v r. Monad m
+             => ProjectionM m p e s v
+             -> p
+             -> Stream (Of e) m r
+             -> Stream (Of v) m r
+adhocStreamM projM p = S.mapM (extractM projM) . projectM (pfoldM projM p)
 
-projectM :: Monad m => FoldM m a b -> Stream (Of a) m r -> Stream (Of b) m r
-projectM (FoldM f z ex) = S.scanM f z ex
-
--- TODO: Maybe just projectMCanWriteCache where TVar is just one implementation of
---       CanWriteCache?
-projectMTVar :: forall m a b r. (MonadBaseControl IO m, MonadIO m)
-             => FoldM m a b -> Stream (Of a) m r -> m (TVar b)
-projectMTVar f@(FoldM _ z ex) stream = do
-  var <- liftIO . newTVarIO =<< ex =<< z
-  -- TODO: something better than just forkIO? (at least report crashes?)
-  void . liftBaseDiscard forkIO . void . S.effects . projectM (wrap' var f) $ stream
-  return var
-  where
-    wrap' var (FoldM mf mz mex) = FoldM mf mz mex'
-      where
-        mex' = (g =<<) . mex
-        g b = do
-          liftIO . atomically $ writeTVar var b
-          return b
-
--- TODO: X.Streaming
-unOf :: Of a b -> a
-unOf = fst . lazily
+adhocValueM :: forall m p e s v r. Monad m
+            => ProjectionM m p e s v
+            -> p
+            -> Stream (Of e) m r
+            -> m v
+adhocValueM projM p es = extractM projM =<< currentValueM (pfoldM projM p) es
