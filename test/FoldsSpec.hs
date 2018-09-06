@@ -3,14 +3,14 @@
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
-module ProjectionSpec where
+module FoldsSpec where
 
 import           Dispenser.Prelude
 import qualified Streaming.Prelude           as S
 
 import           Control.Concurrent.STM.TVar
 import qualified Data.Set                    as Set
-import           Dispenser.Projections
+import           Dispenser.Folds
 import           Dispenser.Types
 import           Streaming
 import           Test.Hspec
