@@ -24,6 +24,7 @@ library
                      , Dispenser.Client.Memory
                      , Dispenser.Client.Null
                      , Dispenser.Diffs
+                     , Dispenser.Folds
                      , Dispenser.Functions
                      , Dispenser.Prelude
                      , Dispenser.Projections
