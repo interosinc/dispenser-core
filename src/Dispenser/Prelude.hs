@@ -2,12 +2,12 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module Dispenser.Prelude
-    ( module Exports
-    , debug
-    , putLn
-    , sleep
-    , toggleDebug
-    ) where
+  ( module Exports
+  , debug
+  , putLn
+  , sleep
+  , toggleDebug
+  ) where
 
 import Control.Concurrent.STM.TVar                    ( TVar
                                                       , modifyTVar

@@ -5,13 +5,13 @@
 {-# LANGUAGE ScopedTypeVariables   #-}
 
 module Dispenser.Transport
-     ( ConstTransport( ConstTransport )
-     , NullTransport( NullTransport )
-     , Selector
-     , Transport
-     , subscribe
-     , unSelector
-     ) where
+  ( ConstTransport( ConstTransport )
+  , NullTransport( NullTransport )
+  , Selector
+  , Transport
+  , subscribe
+  , unSelector
+  ) where
 
 import           Dispenser.Prelude      hiding ( Selector )
 import qualified Streaming.Prelude as S

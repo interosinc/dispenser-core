@@ -5,16 +5,16 @@
 {-# LANGUAGE ScopedTypeVariables   #-}
 
 module Dispenser.Functions
-     ( currentStream
-     , currentStreamFrom
-     , eventNumberDelta
-     , fromOne
-     , genericFromEventNumber
-     , genericFromNow
-     , initialEventNumber
-     , now
-     , postEvent
-     ) where
+  ( currentStream
+  , currentStreamFrom
+  , eventNumberDelta
+  , fromOne
+  , genericFromEventNumber
+  , genericFromNow
+  , initialEventNumber
+  , now
+  , postEvent
+  ) where
 
 import           Dispenser.Prelude
 import qualified Streaming.Prelude as S

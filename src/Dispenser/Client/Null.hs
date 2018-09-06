@@ -3,9 +3,9 @@
 {-# LANGUAGE NoImplicitPrelude     #-}
 
 module Dispenser.Client.Null
-     ( NullClient
-     , NullConnection
-     ) where
+  ( NullClient
+  , NullConnection
+  ) where
 
 import Dispenser.Prelude
 

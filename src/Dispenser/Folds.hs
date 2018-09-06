@@ -4,15 +4,15 @@
 {-# LANGUAGE ScopedTypeVariables   #-}
 
 module Dispenser.Folds
-     ( currentEventValue
-     , currentEventValueM
-     , currentValue
-     , currentValueM
-     , L.generalize
-     , project
-     , projectM
-     , projectMTVar
-     ) where
+  ( currentEventValue
+  , currentEventValueM
+  , currentValue
+  , currentValueM
+  , L.generalize
+  , project
+  , projectM
+  , projectMTVar
+  ) where
 
 import           Dispenser.Prelude
 import qualified Streaming.Prelude           as S

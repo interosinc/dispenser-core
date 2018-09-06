@@ -4,11 +4,11 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module Dispenser.Diffs
-     ( applyPatch
-     , makePatch
-     , unsafePatched
-     , patches
-     ) where
+  ( applyPatch
+  , makePatch
+  , unsafePatched
+  , patches
+  ) where
 
 import           Dispenser.Prelude      hiding ( diff )
 import qualified Streaming.Prelude as S
