@@ -27,26 +27,16 @@ import           Dispenser.Types
 import           Streaming
 
 currentValue :: Monad m => Fold a b -> Stream (Of a) m r -> m b
-currentValue f stream = do
-  x :> _ <- L.purely S.fold f stream
-  return x
+currentValue f stream = unOf <$> L.purely S.fold f stream
 
 currentValueM :: Monad m => FoldM m a b -> Stream (Of a) m r -> m b
-currentValueM f stream = do
-  x :> _ <- L.impurely S.foldM f stream
-  return x
+currentValueM f stream = unOf <$> L.impurely S.foldM f stream
 
 currentEventValue :: Monad m => Fold a b -> Stream (Of (Event a)) m r -> m b
-currentEventValue f inStream = do
-  let stream = S.map (view eventData) inStream
-  x :> _ <- L.purely S.fold f stream
-  return x
+currentEventValue f stream = unOf <$> L.purely S.fold f (S.map (view eventData) stream)
 
 currentEventValueM :: Monad m => FoldM m a b -> Stream (Of (Event a)) m r -> m b
-currentEventValueM f inStream = do
-  let stream = S.map (view eventData) inStream
-  x :> _ <- L.impurely S.foldM f stream
-  return x
+currentEventValueM f stream = unOf <$> L.impurely S.foldM f (S.map (view eventData) stream)
 
 project :: Monad m => Fold a b -> Stream (Of a) m r -> Stream (Of b) m r
 project (Fold f z ex) = S.scan f z ex
@@ -56,7 +46,6 @@ projectM (FoldM f z ex) = S.scanM f z ex
 
 -- TODO: Maybe just projectMCanWriteCache where TVar is just one implementation of
 --       CanWriteCache?
-
 projectMTVar :: forall m a b r. (MonadBaseControl IO m, MonadIO m)
              => FoldM m a b -> Stream (Of a) m r -> m (TVar b)
 projectMTVar f@(FoldM _ z ex) stream = do
@@ -71,3 +60,7 @@ projectMTVar f@(FoldM _ z ex) stream = do
         g b = do
           liftIO . atomically $ writeTVar var b
           return b
+
+-- TODO: X.Streaming
+unOf :: Of a b -> a
+unOf = fst . lazily
