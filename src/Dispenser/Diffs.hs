@@ -10,16 +10,16 @@ module Dispenser.Diffs
      , patches
      ) where
 
-import           Dispenser.Prelude          hiding ( diff )
-import qualified Streaming.Prelude     as S
+import           Dispenser.Prelude      hiding ( diff )
+import qualified Streaming.Prelude as S
 
-import           Data.Aeson.Diff                   ( Patch
-                                                   , diff
-                                                   , patch
-                                                   )
-import           Dispenser.Projections             ( project
-                                                   , projectM
-                                                   )
+import           Data.Aeson.Diff               ( Patch
+                                               , diff
+                                               , patch
+                                               )
+import           Dispenser.Folds               ( project
+                                               , projectM
+                                               )
 import           Streaming
 
 applyPatch :: (FromJSON a, ToJSON a) => Patch -> a -> Result a
