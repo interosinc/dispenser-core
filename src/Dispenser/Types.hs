@@ -119,8 +119,15 @@ instance Monoid StreamSource where
 instance Zero StreamSource where
   zero = AllStreams
 
-singleStream :: StreamName -> StreamSource
-singleStream = SomeStreams . Set.singleton
+singletonSource :: StreamName -> StreamSource
+singletonSource = SomeStreams . Set.singleton
+
+sourceFromList :: [StreamName] -> StreamSource
+sourceFromList = mconcat . map singletonSource
+
+sourceCount :: StreamSource -> Word
+sourceCount (SomeStreams xs) = fromIntegral . Set.size $ xs
+sourceCount AllStreams       = 0
 
 newtype PartitionName = PartitionName { unPartitionName :: Text }
   deriving (Data, Eq, Generic, Ord, Read, Show)

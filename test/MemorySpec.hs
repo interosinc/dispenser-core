@@ -110,7 +110,7 @@ makeTestStream batchSize n = do
   conn <- liftIO createTestPartition
   debug $ "makeTestStream posting " <> show n <> " events..."
   mapM_ (liftIO . postTestEvent conn) [1..n]
-  debug $ "makeTestStream returning"
+  debug "makeTestStream returning"
   (conn,) <$> fromOne conn batchSize testStreamSource
 
 testStreamSource :: StreamSource
