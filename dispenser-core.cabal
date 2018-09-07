@@ -59,8 +59,8 @@ test-suite dispenser-core-test
   hs-source-dirs:      test
   main-is:             Spec.hs
   other-modules:       DiffsSpec
+                     , FoldsSpec
                      , MemorySpec
-                     , ProjectionSpec
                      , TestHelpers
                      , TypesSpec
   build-depends:       QuickCheck
