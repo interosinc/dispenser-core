@@ -15,6 +15,7 @@ import           Dispenser.Prelude
 
 import           Data.Default
 import qualified Data.Semigroup            as Semi
+import qualified Data.Set                  as Set
 import           Streaming
 import           Test.QuickCheck
 import           Test.QuickCheck.Instances         ()
@@ -117,6 +118,9 @@ instance Monoid StreamSource where
 
 instance Zero StreamSource where
   zero = AllStreams
+
+singleStream :: StreamName -> StreamSource
+singleStream = SomeStreams . Set.singleton
 
 newtype PartitionName = PartitionName { unPartitionName :: Text }
   deriving (Data, Eq, Generic, Ord, Read, Show)
