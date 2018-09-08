@@ -80,7 +80,17 @@ genericFromEventNumber conn batchSize source eventNum = do
       debug $ "genericFromEventNumber: nextEventNum=" <> show nextEventNum
       currentEventNum <- currentEventNumber conn
       debug $ "genericFromEventNumber: currentEventNum=" <> show currentEventNum
-      if eventNumberDelta currentEventNum lastEventNum > maxHandOffDelta
+      let delta = eventNumberDelta currentEventNum lastEventNum
+      debug $ "delta: " <> show delta
+      debug $ "delta > maxHandOffDelta: " <> show (delta > maxHandOffDelta)
+      debug $ "delta == 1: " <> show (delta == 1)
+      debug $ "batchSize == 1: " <> show (batchSize == 1)
+      debug $ "delta == 1 && batchSize == 1: " <> show (delta == 1 && batchSize == 1)
+      -- TODO: the second half of this or clause is dicey.  I have it here now
+      --       to work around a bug introduced when implementing StreamSource
+      --       filtering that triggers when batchSize == 1 but we really need
+      --       root cause analysis and patch
+      if delta > maxHandOffDelta -- || delta > 1 && batchSize == 1
         then do
           debug $ "delta greater: fromEventNumber, nextEventNum=" <> show nextEventNum
           join . lift $ genericFromEventNumber conn batchSize source nextEventNum
@@ -91,11 +101,11 @@ genericFromEventNumber conn batchSize source eventNum = do
     maxHandOffDelta = 50 -- TODO
 
     catchup en = do
-      debug $ "genericFromEventNumber: en=" <> show en
+      debug $ "genericFromEventNumber: catchup en=" <> show en
       join . lift . chaseFrom en =<< (join . lift $ fromNow conn batchSize source)
 
     chaseFrom startNum stream = do
-      debug $ "genericFromEventNumber:chaseFrom: startNum="
+      debug $ "genericFromEventNumber: chaseFrom: startNum="
         <> show startNum <> ", stream=..."
       S.next stream >>= \case
         Left _ -> do
