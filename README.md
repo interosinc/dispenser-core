@@ -1,6 +1,6 @@
 # dispenser
 
-A dispenser of wisdom (and events).
+An (experimental/work-in-progress) dispenser of wisdom (and events).
 
 ![best dispenser ever](pez.jpg)
 
@@ -37,8 +37,7 @@ A dispenser of wisdom (and events).
 
 - Resource finalization, not leaking postgres connections
 
-- What happens when you record duplicate events? (two copies of the same bot running)
+- What happens when you record duplicate events? (eg. two copies of the same bot running)
 
-- What happens when you miss events that you can reconstruct later? (bot was down,
+- What happens when you miss events that you can reconstruct later? (eg. bot was down,
   but can use API to catch up)
-
