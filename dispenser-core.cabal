@@ -3,7 +3,7 @@ version:             0.1.0.0
 -- synopsis:
 -- description:
 homepage:            https://github.com/superpowerscorp/dispenser-core#readme
-license:             AllRightsReserved
+license:             BSD3
 license-file:        LICENSE
 author:              Superpowers Corp
 maintainer:          john@superpowerscorp.com
