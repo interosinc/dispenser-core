@@ -9,6 +9,7 @@ module Dispenser.Prelude
   , toggleDebug
   ) where
 
+import Control.Monad.Trans.Resource as Exports        ( MonadResource )
 import Control.Concurrent.STM.TVar                    ( TVar
                                                       , modifyTVar
                                                       , newTVarIO

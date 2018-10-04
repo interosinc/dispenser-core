@@ -1,3 +1,4 @@
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE NoImplicitPrelude     #-}
@@ -78,7 +79,7 @@ genericFromEventNumber conn batchSize source eventNum = do
           nextEventNum = succ lastEventNum
       debug $ "genericFromEventNumber: lastEventNum=" <> show lastEventNum
       debug $ "genericFromEventNumber: nextEventNum=" <> show nextEventNum
-      currentEventNum <- currentEventNumber conn
+      currentEventNum <- lift $ currentEventNumber conn
       debug $ "genericFromEventNumber: currentEventNum=" <> show currentEventNum
       let delta = eventNumberDelta currentEventNum lastEventNum
       debug $ "delta: " <> show delta
