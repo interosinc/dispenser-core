@@ -91,7 +91,8 @@ genericFromEventNumber conn batchSize source eventNum = do
       --       to work around a bug introduced when implementing StreamSource
       --       filtering that triggers when batchSize == 1 but we really need
       --       root cause analysis and patch
-      if delta > maxHandOffDelta -- || delta > 1 && batchSize == 1
+      if delta > maxHandOffDelta
+        --       || delta > 1 && batchSize == 1
         then do
           debug $ "delta greater: fromEventNumber, nextEventNum=" <> show nextEventNum
           join . lift $ genericFromEventNumber conn batchSize source nextEventNum

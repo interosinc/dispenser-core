@@ -8,7 +8,7 @@ module MemorySpec ( main, spec ) where
 import           Dispenser.Prelude
 import qualified Streaming.Prelude            as S
 
-import           Control.Monad.Trans.Resource
+-- import           Control.Monad.Trans.Resource
 import           Data.Set
 import           Dispenser.Client.Memory
 import           Dispenser.Functions
