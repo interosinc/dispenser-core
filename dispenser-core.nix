@@ -2,6 +2,7 @@
 , data-default, foldl, hspec, lens, monad-control, protolude
 , QuickCheck, quickcheck-instances, random, resourcet, stdenv, stm
 , streaming, text, time, unordered-containers, zero
+, ...
 }:
 mkDerivation {
   pname = "dispenser-core";
