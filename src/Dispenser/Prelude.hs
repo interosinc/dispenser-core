@@ -9,7 +9,6 @@ module Dispenser.Prelude
   , toggleDebug
   ) where
 
-import Control.Monad.Trans.Resource as Exports        ( MonadResource )
 import Control.Concurrent.STM.TVar                    ( TVar
                                                       , modifyTVar
                                                       , newTVarIO
@@ -26,6 +25,7 @@ import Control.Lens                 as Exports        ( (^.)
                                                       , view
                                                       )
 import Control.Monad.Trans.Control  as Exports        ( MonadBaseControl )
+import Control.Monad.Trans.Resource as Exports        ( MonadResource )
 import Control.Monad.Trans.Resource as Exports        ( runResourceT )
 import Data.Aeson                   as Exports        ( FromJSON
                                                       , Result( Error
