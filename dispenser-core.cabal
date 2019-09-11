@@ -7,7 +7,7 @@ license:             BSD3
 license-file:        LICENSE
 author:              Superpowers Corp
 maintainer:          john@superpowerscorp.com
-copyright:           2018 Superpowers Corp
+copyright:           2018 Superpowers Corp, 2019 Interos, Inc.
 category:            Web
 build-type:          Simple
 extra-source-files:  README.md
