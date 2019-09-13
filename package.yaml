@@ -1,0 +1,65 @@
+name:                dispenser-core
+version:             0.2.0.0
+github:              "interosinc/dispenser-core"
+license:             BSD3
+author:              "John Evans"
+maintainer:          "jevans@interos.net"
+copyright:           "2019 Interos, Inc"
+
+extra-source-files:
+- README.md
+# - ChangeLog.md
+
+synopsis:            Functional event sourcing
+category:            Database
+
+description:         README at <https://github.com/interosinc/dispenser-core#readme>
+
+dependencies:
+- QuickCheck
+- aeson
+- aeson-diff
+- base                     >= 4.7 && < 5
+- bytestring
+- containers
+- data-default
+- foldl
+- lens
+- monad-control
+- protolude
+- quickcheck-instances
+- random
+- resourcet
+- stm
+- streaming
+- text
+- time
+- unordered-containers
+- zero
+
+library:
+  source-dirs: src
+  ghc-options:
+  - -Wall
+  - -Wcompat
+  - -Wincomplete-record-updates
+  - -Wincomplete-uni-patterns
+  - -Wredundant-constraints
+
+tests:
+  dispenser-core-test:
+    main:                Spec.hs
+    source-dirs:         test
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    - -Wall
+    - -Wcompat
+    - -Wincomplete-record-updates
+    - -Wincomplete-uni-patterns
+    - -Wredundant-constraints
+    dependencies:
+    - dispenser-core
+    - quickcheck-instances
+    - hspec
