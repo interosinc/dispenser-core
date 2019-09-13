@@ -4,7 +4,7 @@ github:              "interosinc/dispenser-core"
 license:             BSD3
 author:              "John Evans"
 maintainer:          "jevans@interos.net"
-copyright:           "2019 Interos, Inc"
+copyright:           "2018 Superpowers Corp, 2019 Interos, Inc"
 
 extra-source-files:
 - README.md
