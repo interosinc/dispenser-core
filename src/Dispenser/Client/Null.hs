@@ -23,8 +23,9 @@ data NullClient a = NullClient
 data NullConnection a = NullConnection
   deriving (Eq, Ord, Read, Show)
 
--- instance Client (NullClient e) m NullConnection e where
---   connect _ _ = return NullConnection
+instance (EventData e, MonadResource m)
+  => Client (NullClient e) m NullConnection e where
+  connect _ _ = return NullConnection
 
 instance (EventData e, MonadResource m) => CanAppendEvents m NullConnection e where
   appendEvents :: NullConnection e
@@ -41,7 +42,6 @@ instance CanFromEventNumber m NullConnection e where
 
 instance CanRangeStream m NullConnection e where
   rangeStream _conn _batchSize _streamNames _range = return mempty
-
 
 _proof :: PartitionConnection m NullConnection e => Proxy (m e)
 _proof = Proxy
