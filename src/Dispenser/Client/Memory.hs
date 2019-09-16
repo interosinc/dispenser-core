@@ -49,7 +49,7 @@ instance CanCurrentEventNumber m MemConnection e where
 instance CanFromNow MemConnection e where
   fromNow = genericFromNow
 
-instance CanFromEventNumber MemConnection e where
+instance CanFromEventNumber m MemConnection e where
   fromEventNumber conn _batchSize = continueFrom conn
 
 -- TODO: Streams are already monads so these can be written just in terms of

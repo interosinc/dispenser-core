@@ -50,7 +50,7 @@ eventNumberDelta (EventNumber n) (EventNumber m) = abs $ fromIntegral n - fromIn
 
 fromOne :: ( EventData e
            , MonadResource m
-           , CanFromEventNumber conn e
+           , CanFromEventNumber m conn e
            )
         => conn e -> BatchSize -> StreamSource -> m (Stream (Of (Event e)) m r)
 fromOne conn batchSize source =
@@ -126,7 +126,7 @@ genericFromEventNumber conn batchSize source eventNum = do
 --       used to implement fromNow in terms of that fromEventNumber.
 genericFromNow :: forall conn e m r.
                   ( CanCurrentEventNumber m conn e
-                  , CanFromEventNumber conn e
+                  , CanFromEventNumber m conn e
                   , EventData e
                   , MonadResource m
                   )

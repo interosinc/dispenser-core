@@ -36,7 +36,7 @@ instance (EventData e, MonadResource m) => CanAppendEvents m NullConnection e wh
 instance CanCurrentEventNumber m NullConnection e where
   currentEventNumber = const . return $ initialEventNumber
 
-instance CanFromEventNumber NullConnection e where
+instance CanFromEventNumber m NullConnection e where
   fromEventNumber _conn _batchSize _eventNum = return . forever . sleep $ 1000
 
 instance CanRangeStream NullConnection e where
