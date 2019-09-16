@@ -1,10 +1,13 @@
-{-# LANGUAGE FlexibleInstances      #-}
-{-# LANGUAGE FunctionalDependencies #-}
-{-# LANGUAGE InstanceSigs           #-}
-{-# LANGUAGE LambdaCase             #-}
-{-# LANGUAGE NoImplicitPrelude      #-}
-{-# LANGUAGE OverloadedStrings      #-}
-{-# LANGUAGE TemplateHaskell        #-}
+{-# LANGUAGE FlexibleContexts              #-}
+{-# LANGUAGE FlexibleInstances             #-}
+{-# LANGUAGE FunctionalDependencies        #-}
+{-# LANGUAGE InstanceSigs                  #-}
+{-# LANGUAGE LambdaCase                    #-}
+{-# LANGUAGE MonoLocalBinds                #-}
+{-# LANGUAGE NoImplicitPrelude             #-}
+{-# LANGUAGE OverloadedStrings             #-}
+{-# LANGUAGE TemplateHaskell               #-}
+{-# OPTIONS_GHC -Wno-redundant-constraints #-}
 
 module Dispenser.Client.Memory where
 
@@ -35,7 +38,8 @@ makeFields ''MemConnection
 new :: IO (MemClient a)
 new = MemClient <$> newTVarIO Map.empty
 
-instance EventData e => PartitionConnection MemConnection e
+_proof :: PartitionConnection m MemConnection e => Proxy (m e)
+_proof = Proxy
 
 instance CanCurrentEventNumber MemConnection e where
   currentEventNumber conn = fromMaybe (pred initialEventNumber)
@@ -78,10 +82,10 @@ continueFrom conn source minE = do
     matchesStreams :: Event a -> Bool
     matchesStreams _ = True  -- TODO
 
-instance EventData e => Client (MemClient e) MemConnection e where
+instance (EventData e, MonadResource m) => Client (MemClient e) m MemConnection e where
   connect partName client' = return $ MemConnection client' partName
 
-instance EventData e => CanAppendEvents MemConnection e where
+instance (EventData e, MonadResource m) => CanAppendEvents m MemConnection e where
   appendEvents conn streamNames batch = liftIO now >>= doAppend
     where
       doAppend ts = do

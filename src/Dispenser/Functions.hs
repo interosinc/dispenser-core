@@ -140,6 +140,6 @@ initialEventNumber = EventNumber 1
 now :: IO Timestamp
 now = Timestamp <$> getCurrentTime
 
-postEvent :: (EventData e, CanAppendEvents conn e, MonadResource m)
+postEvent :: (CanAppendEvents m conn e)
           => conn e -> Set StreamName -> e -> m EventNumber
 postEvent pc sns e = appendEvents pc sns (NonEmptyBatch $ e :| [])

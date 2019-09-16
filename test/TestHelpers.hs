@@ -30,7 +30,7 @@ createTestPartition :: IO (MemConnection TestInt)
 createTestPartition = do
   client' :: MemClient TestInt <- liftIO Client.new
   name <- randomPartitionName
-  liftIO $ connect name client'
+  liftIO . runResourceT $ connect name client'
   where
     randomPartitionName :: IO PartitionName
     randomPartitionName = PartitionName

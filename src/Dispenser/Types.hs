@@ -1,3 +1,4 @@
+{-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE DeriveDataTypeable         #-}
 {-# LANGUAGE DeriveFunctor              #-}
 {-# LANGUAGE DeriveGeneric              #-}
@@ -26,8 +27,8 @@ newtype Batch e = Batch { unBatch :: [e] }
 newtype BatchSize = BatchSize { unBatchSize :: Word }
   deriving (Data, Eq, Generic, Num, Ord, Read, Show)
 
-class PartitionConnection conn e => Client client conn e | client -> conn where
-  connect :: MonadIO m => PartitionName -> client -> m (conn e)
+class PartitionConnection m conn e => Client client m conn e | client -> conn where
+  connect :: PartitionName -> client -> m (conn e)
 
 -- TODO: DatabaseURL should probably be in .Server... though maybe just "URL" should
 --       be here?
@@ -65,15 +66,21 @@ data Partition = Partition
   , _partitionName :: PartitionName
   } deriving (Data, Eq, Generic, Ord, Read, Show)
 
-class ( CanAppendEvents         conn e
-      , CanCurrentEventNumber   conn e
-      , CanFromEventNumber      conn e
-      , CanRangeStream          conn e
-      ) => PartitionConnection  conn e
+type PartitionConnection m conn e =
+  ( CanAppendEvents         m conn e
+  , CanCurrentEventNumber   conn e
+  , CanFromEventNumber      conn e
+  , CanRangeStream          conn e
+  )
 
-class CanAppendEvents conn e where
-  appendEvents :: ( EventData e, MonadResource m )
-               => conn e -> Set StreamName -> NonEmptyBatch e -> m EventNumber
+-- class ( CanAppendEvents         m conn e
+--       , CanCurrentEventNumber   conn e
+--       , CanFromEventNumber      conn e
+--       , CanRangeStream          conn e
+--       ) => PartitionConnection  m conn e
+
+class ( EventData e, MonadResource m ) => CanAppendEvents m conn e where
+  appendEvents :: conn e -> Set StreamName -> NonEmptyBatch e -> m EventNumber
 
 class CanCurrentEventNumber conn e where
   currentEventNumber :: MonadResource m => conn e -> m EventNumber

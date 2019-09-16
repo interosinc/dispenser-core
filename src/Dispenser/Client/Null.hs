@@ -1,6 +1,11 @@
-{-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE NoImplicitPrelude     #-}
+{-# LANGUAGE ConstraintKinds               #-}
+{-# LANGUAGE FlexibleContexts              #-}
+{-# LANGUAGE FlexibleInstances             #-}
+{-# LANGUAGE InstanceSigs                  #-}
+{-# LANGUAGE MonoLocalBinds                #-}
+{-# LANGUAGE MultiParamTypeClasses         #-}
+{-# LANGUAGE NoImplicitPrelude             #-}
+{-# OPTIONS_GHC -Wno-redundant-constraints #-}
 
 module Dispenser.Client.Null
   ( NullClient
@@ -18,10 +23,14 @@ data NullClient a = NullClient
 data NullConnection a = NullConnection
   deriving (Eq, Ord, Read, Show)
 
-instance Client (NullClient e) NullConnection e where
-  connect _ _ = return NullConnection
+-- instance Client (NullClient e) m NullConnection e where
+--   connect _ _ = return NullConnection
 
-instance CanAppendEvents NullConnection e where
+instance (EventData e, MonadResource m) => CanAppendEvents m NullConnection e where
+  appendEvents :: NullConnection e
+               -> Set StreamName
+               -> NonEmptyBatch e
+               -> m EventNumber
   appendEvents _ _ _ = return initialEventNumber
 
 instance CanCurrentEventNumber NullConnection e where
@@ -33,4 +42,5 @@ instance CanFromEventNumber NullConnection e where
 instance CanRangeStream NullConnection e where
   rangeStream _conn _batchSize _streamNames _range = return mempty
 
-instance PartitionConnection NullConnection e
+_proof :: PartitionConnection m NullConnection e => Proxy (m e)
+_proof = Proxy
