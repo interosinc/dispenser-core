@@ -68,7 +68,7 @@ data Partition = Partition
 
 type PartitionConnection m conn e =
   ( CanAppendEvents         m conn e
-  , CanCurrentEventNumber   conn e
+  , CanCurrentEventNumber   m conn e
   , CanFromEventNumber      conn e
   , CanRangeStream          conn e
   )
@@ -82,7 +82,7 @@ type PartitionConnection m conn e =
 class ( EventData e, MonadResource m ) => CanAppendEvents m conn e where
   appendEvents :: conn e -> Set StreamName -> NonEmptyBatch e -> m EventNumber
 
-class CanCurrentEventNumber conn e where
+class CanCurrentEventNumber m conn e where
   currentEventNumber :: MonadResource m => conn e -> m EventNumber
 
 class CanFromEventNumber conn e where

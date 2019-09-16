@@ -33,7 +33,7 @@ instance (EventData e, MonadResource m) => CanAppendEvents m NullConnection e wh
                -> m EventNumber
   appendEvents _ _ _ = return initialEventNumber
 
-instance CanCurrentEventNumber NullConnection e where
+instance CanCurrentEventNumber m NullConnection e where
   currentEventNumber = const . return $ initialEventNumber
 
 instance CanFromEventNumber NullConnection e where
@@ -41,6 +41,7 @@ instance CanFromEventNumber NullConnection e where
 
 instance CanRangeStream NullConnection e where
   rangeStream _conn _batchSize _streamNames _range = return mempty
+
 
 _proof :: PartitionConnection m NullConnection e => Proxy (m e)
 _proof = Proxy

@@ -41,7 +41,7 @@ new = MemClient <$> newTVarIO Map.empty
 _proof :: PartitionConnection m MemConnection e => Proxy (m e)
 _proof = Proxy
 
-instance CanCurrentEventNumber MemConnection e where
+instance CanCurrentEventNumber m MemConnection e where
   currentEventNumber conn = fromMaybe (pred initialEventNumber)
     . join . fmap (fmap (view eventNumber) . head) . Map.lookup (conn ^. partitionName)
     <$> (liftIO . atomically . readTVar $ conn ^. (client . partitions))

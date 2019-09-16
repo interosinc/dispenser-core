@@ -25,7 +25,7 @@ import           Dispenser.Types
 import           Streaming
 
 currentStream :: ( EventData e
-                 , CanCurrentEventNumber conn e
+                 , CanCurrentEventNumber m conn e
                  , CanRangeStream conn e
                  , MonadResource m
                  )
@@ -35,7 +35,7 @@ currentStream conn batchSize source =
   currentStreamFrom conn batchSize source (EventNumber 0)
 
 currentStreamFrom :: ( EventData e
-                     , CanCurrentEventNumber conn e
+                     , CanCurrentEventNumber m conn e
                      , CanRangeStream conn e
                      , MonadResource m
                      )
@@ -59,7 +59,7 @@ fromOne conn batchSize source =
 genericFromEventNumber :: forall conn e m r.
                           ( EventData e
                           , CanFromNow conn e
-                          , CanCurrentEventNumber conn e
+                          , CanCurrentEventNumber m conn e
                           , CanRangeStream conn e
                           , MonadResource m
                           )
@@ -125,7 +125,7 @@ genericFromEventNumber conn batchSize source eventNum = do
 --       but if for some reason it's easier to fromEventNumber then this can be
 --       used to implement fromNow in terms of that fromEventNumber.
 genericFromNow :: forall conn e m r.
-                  ( CanCurrentEventNumber conn e
+                  ( CanCurrentEventNumber m conn e
                   , CanFromEventNumber conn e
                   , EventData e
                   , MonadResource m
