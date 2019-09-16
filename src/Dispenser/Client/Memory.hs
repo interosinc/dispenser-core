@@ -46,7 +46,7 @@ instance CanCurrentEventNumber m MemConnection e where
     . join . fmap (fmap (view eventNumber) . head) . Map.lookup (conn ^. partitionName)
     <$> (liftIO . atomically . readTVar $ conn ^. (client . partitions))
 
-instance CanFromNow MemConnection e where
+instance CanFromNow m MemConnection e where
   fromNow = genericFromNow
 
 instance CanFromEventNumber m MemConnection e where

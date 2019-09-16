@@ -58,7 +58,7 @@ fromOne conn batchSize source =
 
 genericFromEventNumber :: forall conn e m r.
                           ( EventData e
-                          , CanFromNow conn e
+                          , CanFromNow m conn e
                           , CanCurrentEventNumber m conn e
                           , CanRangeStream conn e
                           , MonadResource m

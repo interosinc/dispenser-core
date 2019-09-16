@@ -90,7 +90,7 @@ class CanFromEventNumber m conn e where
                   => conn e -> BatchSize -> StreamSource -> EventNumber
                   -> m (Stream (Of (Event e)) m r)
 
-class CanFromNow conn e where
+class CanFromNow m conn e where
   fromNow :: ( EventData e, MonadResource m )
           => conn e -> BatchSize -> StreamSource
           -> m (Stream (Of (Event e)) m r)
