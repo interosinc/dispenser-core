@@ -39,7 +39,7 @@ instance CanCurrentEventNumber m NullConnection e where
 instance CanFromEventNumber m NullConnection e where
   fromEventNumber _conn _batchSize _eventNum = return . forever . sleep $ 1000
 
-instance CanRangeStream NullConnection e where
+instance CanRangeStream m NullConnection e where
   rangeStream _conn _batchSize _streamNames _range = return mempty
 
 

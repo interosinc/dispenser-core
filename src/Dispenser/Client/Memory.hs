@@ -101,7 +101,7 @@ instance (EventData e, MonadResource m) => CanAppendEvents m MemConnection e whe
 
           toEvent en payload = Event en streamNames payload ts
 
-instance EventData e => CanRangeStream MemConnection e where
+instance EventData e => CanRangeStream m MemConnection e where
   rangeStream conn _batchSize _streamNames (minE, maxE) = do
     debug $ "rangeStream " <> show (minE, maxE)
     part <- liftIO $ findOrCreateCurrentPartition conn

@@ -26,7 +26,7 @@ import           Streaming
 
 currentStream :: ( EventData e
                  , CanCurrentEventNumber m conn e
-                 , CanRangeStream conn e
+                 , CanRangeStream m conn e
                  , MonadResource m
                  )
               => conn e -> BatchSize -> StreamSource
@@ -36,7 +36,7 @@ currentStream conn batchSize source =
 
 currentStreamFrom :: ( EventData e
                      , CanCurrentEventNumber m conn e
-                     , CanRangeStream conn e
+                     , CanRangeStream m conn e
                      , MonadResource m
                      )
                   => conn e -> BatchSize -> StreamSource -> EventNumber
@@ -60,7 +60,7 @@ genericFromEventNumber :: forall conn e m r.
                           ( EventData e
                           , CanFromNow m conn e
                           , CanCurrentEventNumber m conn e
-                          , CanRangeStream conn e
+                          , CanRangeStream m conn e
                           , MonadResource m
                           )
                        => conn e -> BatchSize ->  StreamSource -> EventNumber
