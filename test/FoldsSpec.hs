@@ -53,7 +53,7 @@ projectMSpec = describe "projectM" $ do
           pStream :: Stream (Of Int) IO ()         = projectM (sumEFoldM var) stream
       pList <- S.fst' <$> S.toList pStream
       pList `shouldBe` [0]
-      val <- atomically $ readTVar var
+      val <- readTVarIO var
       val `shouldBe` 10
 
   context "given a non-empty stream" $
@@ -63,7 +63,7 @@ projectMSpec = describe "projectM" $ do
           pStream :: Stream (Of Int) IO ()         = projectM (sumEFoldM var) stream
       pList <- S.fst' <$> S.toList pStream
       pList `shouldBe` [0,1,3,6]
-      val <- atomically $ readTVar var
+      val <- readTVarIO var
       val `shouldBe` 16
 
 projectMTVarSpec :: Spec
@@ -74,7 +74,7 @@ projectMTVarSpec = describe "projectMTVar" $ do
 
     it "the TVar contains the zero of the projection" $ do
       var <- projectMTVar (generalize sumFold) stream
-      val <- atomically $ readTVar var
+      val <- readTVarIO var
       val `shouldBe` 0
 
   context "given a non-empty stream" $ do
@@ -83,7 +83,7 @@ projectMTVarSpec = describe "projectMTVar" $ do
     it "should return the correct values of the fold for each event" $ do
       var <- projectMTVar (generalize sumFold) stream
       sleep 0.1
-      val <- atomically $ readTVar var
+      val <- readTVarIO var
       val `shouldBe` 6
 
 currentEventValueSpec :: Spec
@@ -110,7 +110,7 @@ currentEventValueMSpec = describe "currentEventValueM" $ do
       let stream :: Stream (Of (Event Int)) IO () = return ()
       n <- currentEventValueM (sumFoldM var) stream
       n `shouldBe` 0
-      val <- atomically $ readTVar var
+      val <- readTVarIO var
       val `shouldBe` 10
 
   context "given a non-empty stream" $
@@ -119,7 +119,7 @@ currentEventValueMSpec = describe "currentEventValueM" $ do
       let stream  :: Stream (Of (Event Int)) IO () = S.each . map testEvent $ [1..3]
       n <- currentEventValueM (sumFoldM var) stream
       n `shouldBe` 6
-      val <- atomically $ readTVar var
+      val <- readTVarIO var
       val `shouldBe` 16
 
 testEvent :: Int -> Event Int
@@ -133,17 +133,13 @@ sumFold = Fold (+) 0 identity
 sumFoldM :: MonadIO m => TVar Int -> FoldM m Int Int
 sumFoldM var = FoldM f z ex
   where
-    f acc e = do
-      let x = acc + e
-      liftIO . atomically . writeTVar var $ x + 10
-      return x
-
-    z = do
-      let x = 0
-      liftIO . atomically . writeTVar var $ x + 10
-      return x
-
+    f acc e = let x = acc + e in writeSafePlus10 x
+    z = let x = 0 in writeSafePlus10 x
     ex = return
+
+    writeSafePlus10 x = do
+      liftIO . atomically . writeTVar var $ x + 10
+      return x
 
 sumEFold :: Fold (Event Int) Int
 sumEFold = Fold f z ex
