@@ -27,7 +27,7 @@ newtype Batch e = Batch { unBatch :: [e] }
 newtype BatchSize = BatchSize { unBatchSize :: Word }
   deriving (Data, Eq, Generic, Num, Ord, Read, Show)
 
-class PartitionConnection m conn e => Client client m conn e | client -> conn where
+class PartitionConnection conn m e => Client client conn m e | client -> conn where
   connect :: PartitionName -> client -> m (conn e)
 
 -- TODO: DatabaseURL should probably be in .Server... though maybe just "URL" should
@@ -66,36 +66,30 @@ data Partition = Partition
   , _partitionName :: PartitionName
   } deriving (Data, Eq, Generic, Ord, Read, Show)
 
-type PartitionConnection m conn e =
-  ( CanAppendEvents         m conn e
-  , CanCurrentEventNumber   m conn e
-  , CanFromEventNumber      m conn e
-  , CanRangeStream          m conn e
+type PartitionConnection conn m e =
+  ( CanAppendEvents         conn m e
+  , CanCurrentEventNumber   conn m e
+  , CanFromEventNumber      conn m e
+  , CanRangeStream          conn m e
   )
 
--- class ( CanAppendEvents         m conn e
---       , CanCurrentEventNumber   conn e
---       , CanFromEventNumber      conn e
---       , CanRangeStream          conn e
---       ) => PartitionConnection  m conn e
-
-class ( EventData e, MonadResource m ) => CanAppendEvents m conn e where
+class ( EventData e, MonadResource m ) => CanAppendEvents conn m e where
   appendEvents :: conn e -> Set StreamName -> NonEmptyBatch e -> m EventNumber
 
-class CanCurrentEventNumber m conn e where
+class CanCurrentEventNumber conn m e where
   currentEventNumber :: MonadResource m => conn e -> m EventNumber
 
-class CanFromEventNumber m conn e where
+class CanFromEventNumber conn m e where
   fromEventNumber :: ( EventData e, MonadResource m )
                   => conn e -> BatchSize -> StreamSource -> EventNumber
                   -> m (Stream (Of (Event e)) m r)
 
-class CanFromNow m conn e where
+class CanFromNow conn m e where
   fromNow :: ( EventData e, MonadResource m )
           => conn e -> BatchSize -> StreamSource
           -> m (Stream (Of (Event e)) m r)
 
-class CanRangeStream m conn e where
+class CanRangeStream conn m e where
   rangeStream :: ( EventData e, MonadResource m )
               => conn e -> BatchSize -> StreamSource -> (EventNumber, EventNumber)
               -> m (Stream (Of (Event e)) m ())

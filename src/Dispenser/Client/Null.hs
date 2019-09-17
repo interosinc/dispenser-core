@@ -24,24 +24,24 @@ data NullConnection a = NullConnection
   deriving (Eq, Ord, Read, Show)
 
 instance (EventData e, MonadResource m)
-  => Client (NullClient e) m NullConnection e where
+  => Client (NullClient e) NullConnection m e where
   connect _ _ = return NullConnection
 
-instance (EventData e, MonadResource m) => CanAppendEvents m NullConnection e where
+instance (EventData e, MonadResource m) => CanAppendEvents NullConnection m e where
   appendEvents :: NullConnection e
                -> Set StreamName
                -> NonEmptyBatch e
                -> m EventNumber
   appendEvents _ _ _ = return initialEventNumber
 
-instance CanCurrentEventNumber m NullConnection e where
+instance CanCurrentEventNumber NullConnection m e where
   currentEventNumber = const . return $ initialEventNumber
 
-instance CanFromEventNumber m NullConnection e where
+instance CanFromEventNumber NullConnection m e where
   fromEventNumber _conn _batchSize _eventNum = return . forever . sleep $ 1000
 
-instance CanRangeStream m NullConnection e where
+instance CanRangeStream NullConnection m e where
   rangeStream _conn _batchSize _streamNames _range = return mempty
 
-_proof :: PartitionConnection m NullConnection e => Proxy (m e)
+_proof :: PartitionConnection NullConnection m e => Proxy (m e)
 _proof = Proxy

@@ -38,18 +38,18 @@ makeFields ''MemConnection
 new :: IO (MemClient a)
 new = MemClient <$> newTVarIO Map.empty
 
-_proof :: PartitionConnection m MemConnection e => Proxy (m e)
+_proof :: PartitionConnection MemConnection m e => Proxy (m e)
 _proof = Proxy
 
-instance CanCurrentEventNumber m MemConnection e where
+instance CanCurrentEventNumber MemConnection m e where
   currentEventNumber conn = fromMaybe (pred initialEventNumber)
     . join . fmap (fmap (view eventNumber) . head) . Map.lookup (conn ^. partitionName)
     <$> (liftIO . atomically . readTVar $ conn ^. (client . partitions))
 
-instance CanFromNow m MemConnection e where
+instance CanFromNow MemConnection m e where
   fromNow = genericFromNow
 
-instance CanFromEventNumber m MemConnection e where
+instance CanFromEventNumber MemConnection m e where
   fromEventNumber conn _batchSize = continueFrom conn
 
 -- TODO: Streams are already monads so these can be written just in terms of
@@ -82,10 +82,10 @@ continueFrom conn source minE = do
     matchesStreams :: Event a -> Bool
     matchesStreams _ = True  -- TODO
 
-instance (EventData e, MonadResource m) => Client (MemClient e) m MemConnection e where
+instance (EventData e, MonadResource m) => Client (MemClient e) MemConnection m e where
   connect partName client' = return $ MemConnection client' partName
 
-instance (EventData e, MonadResource m) => CanAppendEvents m MemConnection e where
+instance (EventData e, MonadResource m) => CanAppendEvents MemConnection m e where
   appendEvents conn streamNames batch = liftIO now >>= doAppend
     where
       doAppend ts = do
@@ -101,7 +101,7 @@ instance (EventData e, MonadResource m) => CanAppendEvents m MemConnection e whe
 
           toEvent en payload = Event en streamNames payload ts
 
-instance EventData e => CanRangeStream m MemConnection e where
+instance EventData e => CanRangeStream MemConnection m e where
   rangeStream conn _batchSize _streamNames (minE, maxE) = do
     debug $ "rangeStream " <> show (minE, maxE)
     part <- liftIO $ findOrCreateCurrentPartition conn

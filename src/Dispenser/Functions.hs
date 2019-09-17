@@ -25,8 +25,8 @@ import           Dispenser.Types
 import           Streaming
 
 currentStream :: ( EventData e
-                 , CanCurrentEventNumber m conn e
-                 , CanRangeStream m conn e
+                 , CanCurrentEventNumber conn m e
+                 , CanRangeStream conn m e
                  , MonadResource m
                  )
               => conn e -> BatchSize -> StreamSource
@@ -35,8 +35,8 @@ currentStream conn batchSize source =
   currentStreamFrom conn batchSize source (EventNumber 0)
 
 currentStreamFrom :: ( EventData e
-                     , CanCurrentEventNumber m conn e
-                     , CanRangeStream m conn e
+                     , CanCurrentEventNumber conn m e
+                     , CanRangeStream conn m e
                      , MonadResource m
                      )
                   => conn e -> BatchSize -> StreamSource -> EventNumber
@@ -50,7 +50,7 @@ eventNumberDelta (EventNumber n) (EventNumber m) = abs $ fromIntegral n - fromIn
 
 fromOne :: ( EventData e
            , MonadResource m
-           , CanFromEventNumber m conn e
+           , CanFromEventNumber conn m e
            )
         => conn e -> BatchSize -> StreamSource -> m (Stream (Of (Event e)) m r)
 fromOne conn batchSize source =
@@ -58,9 +58,9 @@ fromOne conn batchSize source =
 
 genericFromEventNumber :: forall conn e m r.
                           ( EventData e
-                          , CanFromNow m conn e
-                          , CanCurrentEventNumber m conn e
-                          , CanRangeStream m conn e
+                          , CanFromNow conn m e
+                          , CanCurrentEventNumber conn m e
+                          , CanRangeStream conn m e
                           , MonadResource m
                           )
                        => conn e -> BatchSize ->  StreamSource -> EventNumber
@@ -125,8 +125,8 @@ genericFromEventNumber conn batchSize source eventNum = do
 --       but if for some reason it's easier to fromEventNumber then this can be
 --       used to implement fromNow in terms of that fromEventNumber.
 genericFromNow :: forall conn e m r.
-                  ( CanCurrentEventNumber m conn e
-                  , CanFromEventNumber m conn e
+                  ( CanCurrentEventNumber conn m e
+                  , CanFromEventNumber conn m e
                   , EventData e
                   , MonadResource m
                   )
@@ -140,6 +140,6 @@ initialEventNumber = EventNumber 1
 now :: IO Timestamp
 now = Timestamp <$> getCurrentTime
 
-postEvent :: (CanAppendEvents m conn e)
+postEvent :: (CanAppendEvents conn m e)
           => conn e -> Set StreamName -> e -> m EventNumber
 postEvent pc sns e = appendEvents pc sns (NonEmptyBatch $ e :| [])
