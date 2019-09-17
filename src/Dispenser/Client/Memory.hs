@@ -43,8 +43,8 @@ _proof = Proxy
 
 instance CanCurrentEventNumber MemConnection m e where
   currentEventNumber conn = fromMaybe (pred initialEventNumber)
-    . join . fmap (fmap (view eventNumber) . head) . Map.lookup (conn ^. partitionName)
-    <$> (liftIO . atomically . readTVar $ conn ^. (client . partitions))
+    . ((fmap (view eventNumber) . head) =<<) . Map.lookup (conn ^. partitionName)
+    <$> (liftIO . readTVarIO $ conn ^. (client . partitions))
 
 instance CanFromNow MemConnection m e where
   fromNow = genericFromNow
@@ -114,7 +114,7 @@ instance EventData e => CanRangeStream MemConnection m e where
 findOrCreateCurrentPartition :: MemConnection a -> IO [Event a]
 findOrCreateCurrentPartition conn = reverse . fromMaybe []
   . Map.lookup (conn ^. partitionName)
-  <$> (atomically . readTVar $ conn ^. (client . partitions))
+  <$> readTVarIO (conn ^. (client . partitions))
 
 modifyPartition :: MemConnection a ->  ([Event a] -> [Event a]) -> IO ()
 modifyPartition conn f = atomically . modifyTVar (conn ^. (client . partitions))

@@ -12,7 +12,7 @@ module Dispenser.Prelude
 import Control.Concurrent.STM.TVar                    ( TVar
                                                       , modifyTVar
                                                       , newTVarIO
-                                                      , readTVar
+                                                      , readTVarIO
                                                       )
 import Control.Foldl                as Exports        ( Fold( Fold )
                                                       , FoldM( FoldM )
@@ -25,8 +25,9 @@ import Control.Lens                 as Exports        ( (^.)
                                                       , view
                                                       )
 import Control.Monad.Trans.Control  as Exports        ( MonadBaseControl )
-import Control.Monad.Trans.Resource as Exports        ( MonadResource )
-import Control.Monad.Trans.Resource as Exports        ( runResourceT )
+import Control.Monad.Trans.Resource as Exports        ( MonadResource
+                                                      , runResourceT
+                                                      )
 import Data.Aeson                   as Exports        ( FromJSON
                                                       , Result( Error
                                                               , Success
@@ -54,9 +55,8 @@ debugState = unsafePerformIO $ newTVarIO False
 
 -- TODO: switch back to an approach that doesn't require a tvar hit on every invocation
 debug :: MonadIO m => Text -> m ()
-debug s = liftIO $
-  (atomically . readTVar $ debugState) >>= \enabled ->
-    when enabled $ withMVar debugLock $ \() -> putLn $ "DEBUG: " <> s
+debug s = liftIO $ readTVarIO debugState >>= \enabled ->
+  when enabled $ withMVar debugLock $ \() -> putLn $ "DEBUG: " <> s
 
 putLn :: MonadIO m => Text -> m ()
 putLn = putStrLn

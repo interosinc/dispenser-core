@@ -23,7 +23,7 @@ import           Dispenser.Folds               ( project
 import           Streaming
 
 applyPatch :: (FromJSON a, ToJSON a) => Patch -> a -> Result a
-applyPatch p = join . (fromJSON <$>) . patch p . toJSON
+applyPatch p = (fromJSON =<<) . patch p . toJSON
 
 makePatch :: ToJSON a => a -> a -> Patch
 makePatch a b = diff (toJSON a) (toJSON b)
