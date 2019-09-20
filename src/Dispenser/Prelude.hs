@@ -37,7 +37,6 @@ import Data.Aeson                   as Exports        ( FromJSON
                                                       , fromJSON
                                                       , toJSON
                                                       )
-import Data.Data                    as Exports        ( Data )
 import Data.Time.Clock              as Exports        ( UTCTime )
 import Data.Zero                    as Exports        ( Zero
                                                       , zero

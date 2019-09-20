@@ -22,9 +22,6 @@ newtype TestInt = TestInt { unTestInt :: Int }
 
 instance FromJSON  TestInt
 instance ToJSON    TestInt
-instance EventData TestInt
-
-deriving instance Data TestInt
 
 createTestPartition :: IO (MemConnection TestInt)
 createTestPartition = do
