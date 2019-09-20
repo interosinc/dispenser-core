@@ -66,11 +66,11 @@ data Partition = Partition
   , _partitionName :: PartitionName
   } deriving (Data, Eq, Generic, Ord, Read, Show)
 
-type PartitionConnection conn m e =
-  ( CanAppendEvents         conn m e
-  , CanCurrentEventNumber   conn m e
-  , CanFromEventNumber      conn m e
-  , CanRangeStream          conn m e
+type PartitionConnection  conn m e =
+  ( CanAppendEvents       conn m e
+  , CanCurrentEventNumber conn m e
+  , CanFromEventNumber    conn m e
+  , CanRangeStream        conn m e
   )
 
 class ( EventData e, MonadResource m ) => CanAppendEvents conn m e where

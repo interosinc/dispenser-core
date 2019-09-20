@@ -114,4 +114,4 @@ makeTestStream batchSize n = do
   (conn,) <$> fromOne conn batchSize testStreamSource
 
 testStreamSource :: StreamSource
-testStreamSource = SomeStreams . fromList. return . StreamName $ "MemorySpec"
+testStreamSource = SomeStreams . fromList . return . StreamName $ "MemorySpec"
