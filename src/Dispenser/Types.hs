@@ -96,10 +96,10 @@ newtype PoolSize = PoolSize { unPoolSize :: Word }
   deriving (Eq, Generic, Ord, Read, Show)
 
 newtype ProjectionName = ProjectionName { unProjectionName :: Text }
-  deriving (Eq, Generic, Ord, Read, Show)
+  deriving (Eq, FromJSON, Generic, Ord, Read, Show, ToJSON)
 
 newtype StreamName = StreamName { unStreamName :: Text }
-  deriving (Eq, Generic, Ord, Read, Show)
+  deriving (Eq, FromJSON, Generic, Ord, Read, Show, ToJSON)
 
 data StreamSource
   = AllStreams
@@ -129,7 +129,7 @@ sourceCount (SomeStreams xs) = fromIntegral . Set.size $ xs
 sourceCount AllStreams       = 0
 
 newtype PartitionName = PartitionName { unPartitionName :: Text }
-  deriving (Eq, Generic, Ord, Read, Show)
+  deriving (Eq, FromJSON, Generic, Ord, Read, Show, ToJSON)
 
 newtype Timestamp = Timestamp { unTimestamp :: UTCTime }
   deriving (Eq, FromJSON, Generic, Ord, Read, Show, ToJSON)
