@@ -46,6 +46,7 @@ library:
   - -Wincomplete-record-updates
   - -Wincomplete-uni-patterns
   - -Wredundant-constraints
+#  - -Wmissing-import-lists
 
 tests:
   dispenser-core-test:
@@ -60,6 +61,7 @@ tests:
     - -Wincomplete-record-updates
     - -Wincomplete-uni-patterns
     - -Wredundant-constraints
+#    - -Wmissing-import-lists
     dependencies:
     - dispenser-core
     - quickcheck-instances
