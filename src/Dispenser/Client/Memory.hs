@@ -113,8 +113,8 @@ instance EventData e => CanRangeStream MemConnection m e where
     part <- liftIO $ findOrCreateCurrentPartition conn
     debug $ "part: " <> show part
     S.each
-      . takeWhile ((>= minE) . view eventNumber)
-      . dropWhile ((> maxE)  . view eventNumber)
+      . dropWhile ((< minE) . view eventNumber)
+      . takeWhile ((<= maxE) . view eventNumber)
       <$> liftIO (findOrCreateCurrentPartition conn)
 
 findOrCreateCurrentPartition :: MemConnection a -> IO [Event a]
