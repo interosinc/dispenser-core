@@ -3,6 +3,5 @@ resolver: lts-12.11
 packages:
 - location: .
 
-# extra-deps:
-# - protolude-0.2.1
-# - safe-exceptions-0.1.7.0
+extra-deps:
+- streaming-0.2.3.0@sha256:26638a19039b2f447fdbeb430de1f7084c68b6ccd21eff288f5e45cf83670e47

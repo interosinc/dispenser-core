@@ -13,6 +13,8 @@ module Dispenser.Functions
   , genericFromEventNumber
   , genericFromNow
   , initialEventNumber
+  , mergeEventStreams
+  , mergeSameEventStreams
   , now
   , postEvent
   ) where
@@ -143,3 +145,22 @@ now = Timestamp <$> getCurrentTime
 postEvent :: (CanAppendEvents conn m e)
           => conn e -> Set StreamName -> e -> m EventNumber
 postEvent pc sns e = appendEvents pc sns (NonEmptyBatch $ e :| [])
+
+mergeEventStreams :: Monad m
+                  => (a -> c)
+                  -> (b -> c)
+                  -> Stream (Of (Event a)) m r
+                  -> Stream (Of (Event b)) m s
+                  -> Stream (Of (Event c)) m (r, s)
+mergeEventStreams ac bc as bs = S.mergeBy eventOrd
+  (S.map (fmap ac) as)
+  (S.map (fmap bc) bs)
+  where
+    eventOrd = comparing (view recordedAt)
+            <> comparing (view eventNumber)
+
+mergeSameEventStreams :: Monad m
+                      => Stream (Of (Event a)) m r
+                      -> Stream (Of (Event a)) m s
+                      -> Stream (Of (Event a)) m (r, s)
+mergeSameEventStreams = mergeEventStreams identity identity

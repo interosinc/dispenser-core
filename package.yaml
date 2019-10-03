@@ -31,7 +31,7 @@ dependencies:
 - random
 - resourcet
 - stm
-- streaming
+- streaming >=0.2.3.0
 - text
 - time
 - transformers-base
