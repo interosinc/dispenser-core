@@ -1,7 +1,7 @@
 {-# LANGUAGE NoImplicitPrelude   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
-module TypesSpec where
+module TypesTest where
 
 import Dispenser.Prelude
 
@@ -9,8 +9,8 @@ import Dispenser.Types
 import Test.Tasty.Hspec
 import Test.QuickCheck
 
-spec :: Spec
-spec = describe "StreamSource should respect the" $ do
+spec_types :: Spec
+spec_types = describe "StreamSource should respect the" $ do
 
   context "monoid laws" $ do
 

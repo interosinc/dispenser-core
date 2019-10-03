@@ -3,7 +3,7 @@
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
-module DiffsSpec where
+module DiffsTest where
 
 import           Dispenser.Prelude
 import qualified Streaming.Prelude as S
@@ -22,12 +22,12 @@ instance FromJSON ExampleValue
 instance ToJSON   ExampleValue
 
 main :: IO ()
-main = hspec spec
+main = hspec allSpecs
 
-spec :: Spec
-spec = do
-  patchesSpec
-  patchedSpec
+allSpecs :: Spec
+allSpecs = do
+  spec_patches
+  spec_patched
 
 exampleValues :: [ExampleValue]
 exampleValues =
@@ -41,16 +41,16 @@ exampleValues =
 exampleStream :: Monad m => Stream (Of ExampleValue) m ()
 exampleStream = S.each exampleValues
 
-patchesSpec :: Spec
-patchesSpec = describe "patches" $
+spec_patches :: Spec
+spec_patches = describe "patches" $
   it "should generate correct patches" $ do
     ps :: [Patch] <- S.fst' <$> (S.toList =<< patches exampleStream)
     show ps `shouldBe` expected
     where
       expected = "[Patch {patchOperations = [Add {changePointer = Pointer {pointerPath = [OKey \"bars\",AKey 0]}, changeValue = Number 1.0}]},Patch {patchOperations = [Add {changePointer = Pointer {pointerPath = [OKey \"bars\",AKey 1]}, changeValue = Number 2.0}]},Patch {patchOperations = [Rep {changePointer = Pointer {pointerPath = [OKey \"foo\"]}, changeValue = String \"bar\"}]},Patch {patchOperations = [Rem {changePointer = Pointer {pointerPath = [OKey \"bars\",AKey 0]}}]}]" :: Text
 
-patchedSpec :: Spec
-patchedSpec = describe "patched" $
+spec_patched :: Spec
+spec_patched = describe "patched" $
   it "should correctly reassemble patch streams" $ do
     ps <- patches exampleStream
     case head exampleValues of

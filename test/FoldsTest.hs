@@ -3,7 +3,7 @@
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
-module FoldsSpec where
+module FoldsTest where
 
 import           Dispenser.Prelude
 import qualified Streaming.Prelude           as S
@@ -16,18 +16,18 @@ import           Streaming
 import           Test.Tasty.Hspec
 
 main :: IO ()
-main = hspec spec
+main = hspec allSpecs
 
-spec :: Spec
-spec = do
-  projectSpec
-  projectMSpec
-  projectMTVarSpec
-  currentEventValueSpec
-  currentEventValueMSpec
+allSpecs :: Spec
+allSpecs = do
+  spec_project
+  spec_projectM
+  spec_projectMTVar
+  spec_currentEventValue
+  spec_currentEventValueM
 
-projectSpec :: Spec
-projectSpec = describe "project" $ do
+spec_project :: Spec
+spec_project = describe "project" $ do
 
   context "given an empty stream" $
     it "should return the correct zero value from the fold" $ do
@@ -43,8 +43,8 @@ projectSpec = describe "project" $ do
       pList <- S.fst' <$> S.toList pStream
       pList `shouldBe` [0,1,3,6]
 
-projectMSpec :: Spec
-projectMSpec = describe "projectM" $ do
+spec_projectM :: Spec
+spec_projectM = describe "projectM" $ do
 
   context "given an empty stream" $
     it "should return the correct zero value from the fold" $ do
@@ -66,8 +66,8 @@ projectMSpec = describe "projectM" $ do
       val <- readTVarIO var
       val `shouldBe` 16
 
-projectMTVarSpec :: Spec
-projectMTVarSpec = describe "projectMTVar" $ do
+spec_projectMTVar :: Spec
+spec_projectMTVar = describe "projectMTVar" $ do
 
   context "given an empty stream" $ do
     let stream  :: Stream (Of Int) IO () = return ()
@@ -86,8 +86,8 @@ projectMTVarSpec = describe "projectMTVar" $ do
       val <- readTVarIO var
       val `shouldBe` 6
 
-currentEventValueSpec :: Spec
-currentEventValueSpec = describe "currentEventValue" $ do
+spec_currentEventValue :: Spec
+spec_currentEventValue = describe "currentEventValue" $ do
 
   context "given an empty stream" $
     it "should return the correct zero value from the fold" $ do
@@ -101,8 +101,8 @@ currentEventValueSpec = describe "currentEventValue" $ do
       n <- currentEventValue sumFold stream
       n `shouldBe` 6
 
-currentEventValueMSpec :: Spec
-currentEventValueMSpec = describe "currentEventValueM" $ do
+spec_currentEventValueM :: Spec
+spec_currentEventValueM = describe "currentEventValueM" $ do
 
   context "given an empty stream" $
     it "should return the correct zero value from the fold" $ do

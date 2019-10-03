@@ -3,7 +3,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TupleSections       #-}
 
-module MemorySpec ( main, spec ) where
+module MemoryTest where
 
 import           Dispenser.Prelude
 import qualified Streaming.Prelude            as S
@@ -18,12 +18,12 @@ import           Test.Tasty.Hspec
 import           TestHelpers
 
 main :: IO ()
-main = hspec . after_ (sleep logDelay) $ spec
+main = hspec . after_ (sleep logDelay) $ spec_memory
   where
     logDelay = 0.02
 
-spec :: Spec
-spec = let batchSizes = [1..10] in
+spec_memory :: Spec
+spec_memory = let batchSizes = [1..10] in
   describe "Dispenser.Clients.Memory" $ forM_ (fmap BatchSize batchSizes) $
 
     \batchSize -> context ("with " <> show batchSize) $ do

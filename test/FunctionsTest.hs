@@ -1,7 +1,7 @@
 {-# LANGUAGE DeriveGeneric     #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 
-module FunctionsSpec where
+module FunctionsTest where
 
 import           Dispenser.Prelude
 import qualified Streaming.Prelude as S
@@ -20,10 +20,10 @@ data EventB = EventB Char
   deriving (Eq, Generic, Ord, Read, Show)
 
 main :: IO ()
-main = hspec spec
+main = hspec spec_functions
 
-spec :: Spec
-spec = do
+spec_functions :: Spec
+spec_functions = do
   let eventStream = S.each . take 5 . map eventize
 
   describe "mergeEventStreams" $ do
