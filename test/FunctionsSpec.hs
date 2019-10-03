@@ -11,7 +11,7 @@ import           Data.Time.Clock          ( UTCTime( UTCTime )
                                           , addUTCTime
                                           )
 import           Dispenser
-import           Test.Hspec
+import           Test.Tasty.Hspec
 
 data EventA = EventA Int
   deriving (Eq, Generic, Ord, Read, Show)

@@ -11,7 +11,7 @@ import qualified Streaming.Prelude as S
 import           Data.Aeson.Diff
 import           Dispenser.Diffs
 import           Streaming
-import           Test.Hspec
+import           Test.Tasty.Hspec
 
 data ExampleValue = ExampleValue
   { foo :: Text

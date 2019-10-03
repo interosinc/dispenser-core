@@ -6,7 +6,7 @@ module TypesSpec where
 import Dispenser.Prelude
 
 import Dispenser.Types
-import Test.Hspec
+import Test.Tasty.Hspec
 import Test.QuickCheck
 
 spec :: Spec

@@ -14,7 +14,7 @@ import           Dispenser.Client.Memory
 import           Dispenser.Functions
 import           Dispenser.Types
 import           Streaming
-import           Test.Hspec
+import           Test.Tasty.Hspec
 import           TestHelpers
 
 main :: IO ()

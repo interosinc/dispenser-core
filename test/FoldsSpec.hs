@@ -13,7 +13,7 @@ import qualified Data.Set                    as Set
 import           Dispenser.Folds
 import           Dispenser.Types
 import           Streaming
-import           Test.Hspec
+import           Test.Tasty.Hspec
 
 main :: IO ()
 main = hspec spec

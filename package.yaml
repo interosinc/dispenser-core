@@ -50,7 +50,7 @@ library:
 
 tests:
   dispenser-core-test:
-    main:                Spec.hs
+    main:                Driver.hs
     source-dirs:         test
     ghc-options:
     - -threaded
@@ -65,4 +65,6 @@ tests:
     dependencies:
     - dispenser-core
     - quickcheck-instances
-    - hspec
+    - tasty
+    - tasty-discover
+    - tasty-hspec
