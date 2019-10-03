@@ -16,12 +16,15 @@ import qualified Streaming.Prelude           as S
 
 import           Control.Concurrent.STM.TVar
 import qualified Data.Map                    as Map
+import qualified Data.Set                    as Set
 import           Dispenser.Functions                       ( genericFromNow
                                                            , initialEventNumber
                                                            , now
                                                            )
 import           Dispenser.Types                    hiding ( partitionName )
-import           Streaming
+import           Streaming                                 ( Of
+                                                           , Stream
+                                                           )
 
 newtype MemClient a = MemClient
   { _memClientPartitions :: TVar (Map PartitionName [Event a])
@@ -80,7 +83,10 @@ continueFrom conn source minE = do
     elligible = filter matchesStreams . dropWhile ((< minE) . view eventNumber)
 
     matchesStreams :: Event a -> Bool
-    matchesStreams _ = True  -- TODO
+    matchesStreams e = case source of
+      AllStreams -> True
+      SomeStreams targetStreams ->
+        not . Set.null $ Set.intersection targetStreams (_eventStreams e)
 
 instance (EventData e, MonadResource m) => Client (MemClient e) MemConnection m e where
   connect partName client' = return $ MemConnection client' partName
