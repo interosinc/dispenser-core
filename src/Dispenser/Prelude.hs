@@ -26,6 +26,7 @@ import Control.Lens                 as Exports        ( (^.)
                                                       )
 import Control.Monad.Trans.Control  as Exports        ( MonadBaseControl )
 import Control.Monad.Trans.Resource as Exports        ( MonadResource
+                                                      , ResourceT
                                                       , runResourceT
                                                       )
 import Data.Aeson                   as Exports        ( FromJSON

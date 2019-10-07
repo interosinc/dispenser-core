@@ -45,6 +45,9 @@ currentStreamFrom :: ( EventData e
                   -> m (Stream (Of (Event e)) m ())
 currentStreamFrom conn batchSize source minE = do
   maxE <- currentEventNumber conn
+  debug $ "currentStreamFrom, source=" <> show source
+    <> ", minE=" <> show minE
+    <> ", maxE=" <> show maxE
   rangeStream conn batchSize source (minE, maxE)
 
 eventNumberDelta :: EventNumber -> EventNumber -> Integer
