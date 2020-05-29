@@ -1,0 +1,107 @@
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.33.0.
+--
+-- see: https://github.com/sol/hpack
+--
+-- hash: f5bd6810b11ee1b6ed4c1d4b2c5d84c8a601b331f72169ac31a5c1909ab077ed
+
+name:           dispenser-core
+version:        0.2.0.0
+synopsis:       Functional event sourcing
+description:    README at <https://github.com/interosinc/dispenser-core#readme>
+category:       Database
+homepage:       https://github.com/interosinc/dispenser-core#readme
+bug-reports:    https://github.com/interosinc/dispenser-core/issues
+author:         John Evans
+maintainer:     jevans@interos.net
+copyright:      2018 Superpowers Corp, 2019 Interos, Inc
+license:        BSD3
+license-file:   LICENSE
+build-type:     Simple
+extra-source-files:
+    README.md
+
+source-repository head
+  type: git
+  location: https://github.com/interosinc/dispenser-core
+
+library
+  exposed-modules:
+      Dispenser
+      Dispenser.Client.Memory
+      Dispenser.Client.Null
+      Dispenser.Diffs
+      Dispenser.Folds
+      Dispenser.Functions
+      Dispenser.Prelude
+      Dispenser.Projections
+      Dispenser.Sequencer
+      Dispenser.Transport
+      Dispenser.TransportExample
+      Dispenser.Types
+  other-modules:
+      Paths_dispenser_core
+  hs-source-dirs:
+      src
+  ghc-options: -Wall -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints
+  build-depends:
+      QuickCheck
+    , aeson
+    , aeson-diff
+    , base >=4.7 && <5
+    , bytestring
+    , containers
+    , data-default
+    , foldl
+    , lens
+    , monad-control
+    , protolude
+    , quickcheck-instances
+    , random
+    , resourcet
+    , stm
+    , streaming
+    , text
+    , time
+    , unordered-containers
+    , zero
+  default-language: Haskell2010
+
+test-suite dispenser-core-test
+  type: exitcode-stdio-1.0
+  main-is: Spec.hs
+  other-modules:
+      DiffsSpec
+      FoldsSpec
+      MemorySpec
+      TestHelpers
+      TypesSpec
+      Paths_dispenser_core
+  hs-source-dirs:
+      test
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall -Wcompat -Wincomplete-record-updates -Wincomplete-uni-patterns -Wredundant-constraints
+  build-depends:
+      QuickCheck
+    , aeson
+    , aeson-diff
+    , base >=4.7 && <5
+    , bytestring
+    , containers
+    , data-default
+    , dispenser-core
+    , foldl
+    , hspec
+    , lens
+    , monad-control
+    , protolude
+    , quickcheck-instances
+    , random
+    , resourcet
+    , stm
+    , streaming
+    , text
+    , time
+    , unordered-containers
+    , zero
+  default-language: Haskell2010
